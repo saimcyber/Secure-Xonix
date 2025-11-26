@@ -1,0 +1,316 @@
+/*
+ * Project: Xonix Game - Data Structures Project
+ * Course: Data Structures
+ * Authors: [Student Name 1], [Student Name 2]
+ * Roll Numbers: [Roll# 1], [Roll# 2]
+ * Date: November 2025
+ * Description: Player profile system implementation
+ */
+
+#include "Profile.h"
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <ctime>
+
+using namespace std;
+using namespace sf;
+
+// Default constructor
+PlayerProfile::PlayerProfile() {
+    playerID = -1;
+    username = "";
+    totalPoints = 0;
+    matchesWon = 0;
+    matchesLost = 0;
+    friendsHead = nullptr;
+    matchCount = 0;
+    profileFile = "profile_0.txt";
+}
+
+// Parameterized constructor
+PlayerProfile::PlayerProfile(int id, string name) {
+    playerID = id;
+    username = name;
+    totalPoints = 0;
+    matchesWon = 0;
+    matchesLost = 0;
+    friendsHead = nullptr;
+    matchCount = 0;
+    profileFile = "profile_" + to_string(id) + ".txt";
+    loadProfile();
+}
+
+// Destructor - cleanup linked list
+PlayerProfile::~PlayerProfile() {
+    saveProfile();
+    
+    // Delete friend list
+    FriendNode* current = friendsHead;
+    while (current != nullptr) {
+        FriendNode* temp = current;
+        current = current->next;
+        delete temp;
+    }
+}
+
+// Load profile from file
+void PlayerProfile::loadProfile() {
+    ifstream file(profileFile);
+    if (!file.is_open()) {
+        cout << "Creating new profile for " << username << endl;
+        return;
+    }
+    
+    file >> playerID >> totalPoints >> matchesWon >> matchesLost >> matchCount;
+    
+    // Load match history
+    for (int i = 0; i < matchCount && i < 50; i++) {
+        file >> matchHistory[i].matchID;
+        file.ignore();
+        getline(file, matchHistory[i].opponent, ',');
+        file >> matchHistory[i].playerScore >> matchHistory[i].opponentScore;
+        file >> matchHistory[i].won;
+        file.ignore();
+        getline(file, matchHistory[i].date);
+    }
+    
+    // Load friends (count then IDs)
+    int friendCount;
+    file >> friendCount;
+    for (int i = 0; i < friendCount; i++) {
+        int fid;
+        string fname;
+        file >> fid;
+        file.ignore();
+        getline(file, fname);
+        addFriend(fid, fname);
+    }
+    
+    file.close();
+}
+
+// Save profile to file
+void PlayerProfile::saveProfile() {
+    ofstream file(profileFile);
+    if (!file.is_open()) {
+        cout << "Error: Could not save profile!" << endl;
+        return;
+    }
+    
+    file << playerID << " " << totalPoints << " " << matchesWon << " " << matchesLost << " " << matchCount << "\n";
+    
+    // Save match history
+    for (int i = 0; i < matchCount; i++) {
+        file << matchHistory[i].matchID << " "
+             << matchHistory[i].opponent << ","
+             << matchHistory[i].playerScore << " "
+             << matchHistory[i].opponentScore << " "
+             << matchHistory[i].won << " "
+             << matchHistory[i].date << "\n";
+    }
+    
+    // Save friends
+    int friendCount = getFriendCount();
+    file << friendCount << "\n";
+    FriendNode* current = friendsHead;
+    while (current != nullptr) {
+        file << current->friendPlayerID << " " << current->friendUsername << "\n";
+        current = current->next;
+    }
+    
+    file.close();
+}
+
+// Add points
+void PlayerProfile::addPoints(int points) {
+    totalPoints += points;
+    saveProfile();
+}
+
+// Add match result
+void PlayerProfile::addMatchResult(const string& opponent, int playerScore, int opponentScore, bool won) {
+    if (matchCount >= 50) {
+        // Shift array to make room
+        for (int i = 0; i < 49; i++) {
+            matchHistory[i] = matchHistory[i + 1];
+        }
+        matchCount = 49;
+    }
+    
+    matchHistory[matchCount].matchID = matchCount + 1;
+    matchHistory[matchCount].opponent = opponent;
+    matchHistory[matchCount].playerScore = playerScore;
+    matchHistory[matchCount].opponentScore = opponentScore;
+    matchHistory[matchCount].won = won;
+    
+    // Get current date
+    time_t now = time(0);
+    char buffer[80];
+    struct tm* timeinfo = localtime(&now);
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d", timeinfo);
+    matchHistory[matchCount].date = string(buffer);
+    
+    matchCount++;
+    
+    if (won) matchesWon++;
+    else matchesLost++;
+    
+    saveProfile();
+}
+
+// Add friend (linked list insertion at head)
+void PlayerProfile::addFriend(int friendID, const string& friendName) {
+    // Check if already friends
+    if (isFriend(friendID)) {
+        return;
+    }
+    
+    FriendNode* newFriend = new FriendNode(friendID, friendName);
+    newFriend->next = friendsHead;
+    friendsHead = newFriend;
+    saveProfile();
+}
+
+// Remove friend
+bool PlayerProfile::removeFriend(int friendID) {
+    if (friendsHead == nullptr) return false;
+    
+    // If head is the friend to remove
+    if (friendsHead->friendPlayerID == friendID) {
+        FriendNode* temp = friendsHead;
+        friendsHead = friendsHead->next;
+        delete temp;
+        saveProfile();
+        return true;
+    }
+    
+    // Search in the list
+    FriendNode* current = friendsHead;
+    while (current->next != nullptr) {
+        if (current->next->friendPlayerID == friendID) {
+            FriendNode* temp = current->next;
+            current->next = current->next->next;
+            delete temp;
+            saveProfile();
+            return true;
+        }
+        current = current->next;
+    }
+    
+    return false;
+}
+
+// Check if player is friend
+bool PlayerProfile::isFriend(int friendID) {
+    FriendNode* current = friendsHead;
+    while (current != nullptr) {
+        if (current->friendPlayerID == friendID) {
+            return true;
+        }
+        current = current->next;
+    }
+    return false;
+}
+
+// Get friend count
+int PlayerProfile::getFriendCount() {
+    int count = 0;
+    FriendNode* current = friendsHead;
+    while (current != nullptr) {
+        count++;
+        current = current->next;
+    }
+    return count;
+}
+
+// Display profile
+void PlayerProfile::displayProfile(RenderWindow* window, Font& font) {
+    Text title("PLAYER PROFILE", font, 30);
+    title.setFillColor(Color::Yellow);
+    title.setPosition(200, 30);
+    window->draw(title);
+    
+    Text info("", font, 20);
+    info.setFillColor(Color::White);
+    info.setPosition(100, 100);
+    
+    string profileText = "Username: " + username + "\n";
+    profileText += "Player ID: " + to_string(playerID) + "\n";
+    profileText += "Total Points: " + to_string(totalPoints) + "\n";
+    profileText += "Matches Won: " + to_string(matchesWon) + "\n";
+    profileText += "Matches Lost: " + to_string(matchesLost) + "\n";
+    profileText += "Friends: " + to_string(getFriendCount()) + "\n";
+    profileText += "\nPress ESC to return";
+    
+    info.setString(profileText);
+    window->draw(info);
+}
+
+// Display match history
+void PlayerProfile::displayMatchHistory(RenderWindow* window, Font& font) {
+    Text title("MATCH HISTORY", font, 28);
+    title.setFillColor(Color::Yellow);
+    title.setPosition(220, 20);
+    window->draw(title);
+    
+    int yPos = 70;
+    for (int i = matchCount - 1; i >= 0 && i >= matchCount - 8; i--) {
+        Text matchText("", font, 16);
+        matchText.setPosition(50, yPos);
+        
+        string result = matchHistory[i].won ? "WIN" : "LOSS";
+        Color color = matchHistory[i].won ? Color::Green : Color::Red;
+        
+        string line = result + " vs " + matchHistory[i].opponent + " (" +
+                     to_string(matchHistory[i].playerScore) + "-" +
+                     to_string(matchHistory[i].opponentScore) + ") " +
+                     matchHistory[i].date;
+        
+        matchText.setString(line);
+        matchText.setFillColor(color);
+        window->draw(matchText);
+        yPos += 30;
+    }
+    
+    Text instruction("Press ESC to return", font, 16);
+    instruction.setPosition(230, 400);
+    instruction.setFillColor(Color(150, 150, 150));
+    window->draw(instruction);
+}
+
+// Display friends list
+void PlayerProfile::displayFriendsList(RenderWindow* window, Font& font) {
+    Text title("FRIENDS LIST", font, 28);
+    title.setFillColor(Color::Yellow);
+    title.setPosition(240, 20);
+    window->draw(title);
+    
+    int yPos = 80;
+    int count = 1;
+    FriendNode* current = friendsHead;
+    
+    while (current != nullptr && count <= 10) {
+        Text friendText("", font, 18);
+        friendText.setPosition(100, yPos);
+        friendText.setString(to_string(count) + ". " + current->friendUsername + " (ID: " + to_string(current->friendPlayerID) + ")");
+        friendText.setFillColor(Color::White);
+        window->draw(friendText);
+        
+        yPos += 30;
+        count++;
+        current = current->next;
+    }
+    
+    if (friendsHead == nullptr) {
+        Text noFriends("No friends yet. Add some!", font, 18);
+        noFriends.setPosition(150, 150);
+        noFriends.setFillColor(Color(150, 150, 150));
+        window->draw(noFriends);
+    }
+    
+    Text instruction("Press ESC to return", font, 16);
+    instruction.setPosition(230, 400);
+    instruction.setFillColor(Color(150, 150, 150));
+    window->draw(instruction);
+}

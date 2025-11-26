@@ -1,0 +1,35 @@
+# Build directory
+build/
+
+# Visual Studio Code
+.vscode/
+
+# Game data files (auto-generated at runtime)
+accounts.txt
+friends.txt
+inventory.txt
+leaderboard.txt
+scores.txt
+profile_*.txt
+
+# Compiled executables
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Object files
+*.o
+*.obj
+
+# CMake cache
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# IDE files
+*.swp
+*.swo
+*~
+.DS_Store
