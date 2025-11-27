@@ -32,8 +32,91 @@ void ThemeInventory::destroyTree(ThemeNode* node) {
     }
 }
 
-// Insert theme into BST
+// ===== AVL Tree Helper Functions =====
+
+// Get height of a node (0 for null)
+int ThemeInventory::getHeight(ThemeNode* node) {
+    if (node == nullptr) return 0;
+    return node->height;
+}
+
+// Calculate balance factor (left height - right height)
+int ThemeInventory::getBalanceFactor(ThemeNode* node) {
+    if (node == nullptr) return 0;
+    return getHeight(node->left) - getHeight(node->right);
+}
+
+// Left rotation (for right-heavy trees)
+ThemeNode* ThemeInventory::rotateLeft(ThemeNode* x) {
+    ThemeNode* y = x->right;
+    ThemeNode* T2 = y->left;
+    
+    // Perform rotation
+    y->left = x;
+    x->right = T2;
+    
+    // Update heights
+    x->height = 1 + max(getHeight(x->left), getHeight(x->right));
+    y->height = 1 + max(getHeight(y->left), getHeight(y->right));
+    
+    return y;  // New root
+}
+
+// Right rotation (for left-heavy trees)
+ThemeNode* ThemeInventory::rotateRight(ThemeNode* y) {
+    ThemeNode* x = y->left;
+    ThemeNode* T2 = x->right;
+    
+    // Perform rotation
+    x->right = y;
+    y->left = T2;
+    
+    // Update heights
+    y->height = 1 + max(getHeight(y->left), getHeight(y->right));
+    x->height = 1 + max(getHeight(x->left), getHeight(x->right));
+    
+    return x;  // New root
+}
+
+// Balance a node after insertion
+ThemeNode* ThemeInventory::balanceNode(ThemeNode* node) {
+    if (node == nullptr) return node;
+    
+    // Update height
+    node->height = 1 + max(getHeight(node->left), getHeight(node->right));
+    
+    // Get balance factor
+    int balance = getBalanceFactor(node);
+    
+    // Left-Left case
+    if (balance > 1 && getBalanceFactor(node->left) >= 0) {
+        return rotateRight(node);
+    }
+    
+    // Left-Right case
+    if (balance > 1 && getBalanceFactor(node->left) < 0) {
+        node->left = rotateLeft(node->left);
+        return rotateRight(node);
+    }
+    
+    // Right-Right case
+    if (balance < -1 && getBalanceFactor(node->right) <= 0) {
+        return rotateLeft(node);
+    }
+    
+    // Right-Left case
+    if (balance < -1 && getBalanceFactor(node->right) > 0) {
+        node->right = rotateRight(node->right);
+        return rotateLeft(node);
+    }
+    
+    return node;  // Already balanced
+}
+
+// Insert theme into AVL tree with auto-balancing
+// Insert theme into AVL tree with auto-balancing
 ThemeNode* ThemeInventory::insertHelper(ThemeNode* node, Theme theme) {
+    // Standard BST insertion
     if (node == nullptr) {
         return new ThemeNode(theme);
     }
@@ -42,10 +125,12 @@ ThemeNode* ThemeInventory::insertHelper(ThemeNode* node, Theme theme) {
         node->left = insertHelper(node->left, theme);
     } else if (theme.themeID > node->theme.themeID) {
         node->right = insertHelper(node->right, theme);
+    } else {
+        return node;  // Duplicate, don't insert
     }
-    // If equal, don't insert (no duplicates)
     
-    return node;
+    // Balance the node after insertion
+    return balanceNode(node);
 }
 
 void ThemeInventory::insertTheme(Theme theme) {
@@ -114,43 +199,43 @@ void ThemeInventory::displayAllThemes() {
 void ThemeInventory::initializeDefaultThemes() {
     // Theme 1: Classic (Default)
     insertTheme(Theme(1, "Classic", "Original Xonix theme", 
-                     sf::Color::Blue, sf::Color::White, 0, false));
+                     sf::Color::Blue, sf::Color::Cyan, "", 0, false));
     
     // Theme 2: Ocean
     insertTheme(Theme(2, "Ocean", "Deep blue waters", 
-                     sf::Color(0, 105, 148), sf::Color(173, 216, 230), 5, false));
+                     sf::Color(0, 105, 148), sf::Color(173, 216, 230), "ocean_bg.jpg", 5, false));
     
     // Theme 3: Forest
     insertTheme(Theme(3, "Forest", "Green nature theme", 
-                     sf::Color(34, 139, 34), sf::Color(144, 238, 144), 10, false));
+                     sf::Color(34, 139, 34), sf::Color(144, 238, 144), "forest_bg.jpg", 10, false));
     
     // Theme 4: Sunset
     insertTheme(Theme(4, "Sunset", "Warm orange and pink", 
-                     sf::Color(255, 140, 0), sf::Color(255, 182, 193), 15, false));
+                     sf::Color(255, 140, 0), sf::Color(255, 182, 193), "sunset_bg.jpg", 15, false));
     
     // Theme 5: Night
     insertTheme(Theme(5, "Night", "Dark purple sky", 
-                     sf::Color(25, 25, 112), sf::Color(138, 43, 226), 20, false));
+                     sf::Color(25, 25, 112), sf::Color(138, 43, 226), "night_bg.jpeg", 20, false));
     
     // Theme 6: Fire
     insertTheme(Theme(6, "Fire", "Red hot flames", 
-                     sf::Color(220, 20, 60), sf::Color(255, 69, 0), 25, true));
+                     sf::Color(220, 20, 60), sf::Color(255, 69, 0), "fire_bg.jpg", 25, true));
     
     // Theme 7: Ice
     insertTheme(Theme(7, "Ice", "Cool cyan winter", 
-                     sf::Color(0, 191, 255), sf::Color(224, 255, 255), 30, true));
+                     sf::Color(0, 191, 255), sf::Color(224, 255, 255), "ice_bg.jpeg", 30, true));
     
     // Theme 8: Desert
     insertTheme(Theme(8, "Desert", "Sandy golden dunes", 
-                     sf::Color(210, 180, 140), sf::Color(255, 215, 0), 35, true));
+                     sf::Color(210, 180, 140), sf::Color(255, 215, 0), "desert_bg.jpg", 35, true));
     
     // Theme 9: Space
     insertTheme(Theme(9, "Space", "Cosmic black and stars", 
-                     sf::Color(0, 0, 0), sf::Color(255, 255, 255), 40, true));
+                     sf::Color(0, 0, 0), sf::Color(255, 255, 255), "space_bg.jpg", 40, true));
     
-    // Theme 10: Neon
-    insertTheme(Theme(10, "Neon", "Bright electric colors", 
-                     sf::Color(255, 0, 255), sf::Color(0, 255, 255), 50, true));
+    // Theme 10: Rainbow
+    insertTheme(Theme(10, "Rainbow", "Bright colorful spectrum", 
+                     sf::Color(255, 0, 255), sf::Color(255, 255, 0), "rainbow_bg.jpg", 50, true));
 }
 
 // ===== InventoryManager Implementation =====
@@ -302,6 +387,33 @@ void InventoryManager::displayAvailableThemes(int playerID, int playerLevel) {
             cout << endl;
         }
     }
+}
+
+void InventoryManager::autoUnlockByLevel(int playerID, int playerLevel) {
+    int index = findPlayerIndex(playerID);
+    if (index == -1) return;
+    
+    bool newUnlock = false;
+    for (int i = 1; i <= 10; i++) {
+        Theme* theme = themeTree.searchTheme(i);
+        if (theme && !theme->isPremium && theme->unlockLevel <= playerLevel) {
+            if (!playerInventories[index].unlockedThemes[i - 1]) {
+                playerInventories[index].unlockedThemes[i - 1] = true;
+                newUnlock = true;
+                cout << "🎉 New theme unlocked: " << theme->name << "!" << endl;
+            }
+        }
+    }
+    
+    if (newUnlock) {
+        saveInventoryData();
+    }
+}
+
+PlayerInventory* InventoryManager::getPlayerInventory(int playerID) {
+    int index = findPlayerIndex(playerID);
+    if (index == -1) return nullptr;
+    return &playerInventories[index];
 }
 
 void InventoryManager::loadInventoryData() {

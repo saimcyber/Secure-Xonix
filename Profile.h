@@ -39,6 +39,9 @@ private:
     int totalPoints;
     int matchesWon;
     int matchesLost;
+    int currentLevel;
+    int currentXP;
+    int xpToNextLevel;
     FriendNode* friendsHead;  // Linked list of friends
     MatchEntry matchHistory[50];  // Array for match history
     int matchCount;
@@ -46,6 +49,8 @@ private:
     
     void loadProfile();
     void saveProfile();
+    void calculateXPRequirement();
+    void checkLevelUp();
 
 public:
     PlayerProfile();
@@ -59,12 +64,21 @@ public:
     int getMatchesWon() const { return matchesWon; }
     int getMatchesLost() const { return matchesLost; }
     int getMatchCount() const { return matchCount; }
+    int getCurrentLevel() const { return currentLevel; }
+    int getCurrentXP() const { return currentXP; }
+    int getXPToNextLevel() const { return xpToNextLevel; }
+    float getXPProgress() const { return (float)currentXP / (float)xpToNextLevel; }
     
     // Setters
     void addPoints(int points);
+    void addXP(int xp);
     void addMatchResult(const std::string& opponent, int playerScore, int opponentScore, bool won);
     void addFriend(int friendID, const std::string& friendName);
     bool removeFriend(int friendID);
+    
+    // Level system
+    std::string getLevelTitle() const;
+    int getXPFromScore(int score) const;
     
     // Display functions
     void displayProfile(sf::RenderWindow* window, sf::Font& font);

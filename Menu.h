@@ -43,7 +43,7 @@ void showInventoryMenu(sf::RenderWindow* window, InventoryManager* inventoryMgr,
 
 //helper function 
 
-void drawMenu(sf::RenderWindow& window, sf::Font& font, sf::Text menu[Max_menu]);
+void drawMenu(sf::RenderWindow& window, sf::Font& font, sf::Text menu[Max_menu], sf::Color menuColor = sf::Color(169, 169, 169));
 void moveUp(int& menuSelected, int Max_menu);
 void moveDown(int& menuSelected, int Max_menu);
 bool loadMenuSound();

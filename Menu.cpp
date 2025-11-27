@@ -18,6 +18,7 @@
 #include "MinHeap.h"
 #include "FriendSystem.h"
 #include "Inventory.h"
+#include "Profile.h"
 #include <time.h>
 #include <string>
 
@@ -30,6 +31,7 @@ using namespace std;
 // ------------------ GLOBAL VARIABLES ------------------
 
 int sound = 1;
+int mode = 1; // Global game mode: 1=single player, 2=multiplayer
 SoundBuffer changeBuffer;
 Sound changeSound;
 extern int difficulty;  // Defined in Menu.cpp showDifficulty function
@@ -55,10 +57,10 @@ bool loadMenuSound() {
 }
 
 
-void drawMenu(RenderWindow& window, Font& font, Text menu[Max_menu]) {
+void drawMenu(RenderWindow& window, Font& font, Text menu[Max_menu], Color menuColor) {
     for (int i = 0; i < Max_menu; i++) {
         
-        menu[i].setFillColor(Color(169, 169, 169));
+        menu[i].setFillColor(menuColor);
 
         window.draw(menu[i]);
     }
@@ -137,7 +139,7 @@ void showScoreBoard(RenderWindow* window) {
 
 
     Text test("(Press  Ecs to exit)", font, 20);
-    test.setFillColor(Color::Yellow);
+    test.setFillColor(Color(255, 255, 100)); // Light yellow
     test.setPosition(200, 400);
     window->draw(test);
 
@@ -147,7 +149,7 @@ void showScoreBoard(RenderWindow* window) {
     // Display each score on score board
     for (int j = 0; j < i; j++) {
         Text scoreText(lines[j], font, 28);
-        scoreText.setFillColor(Color::White);
+        scoreText.setFillColor(Color(220, 220, 220)); // Light gray for better visibility
         scoreText.setPosition(200, 120 + j * 40); // space between scores
         window->draw(scoreText);
     }
@@ -203,6 +205,13 @@ int showSubmenu(RenderWindow* window, const string options[], int count) {
         cout << "Font loading failed!" << endl;
         return -1;
     }
+    
+    // Get equipped theme colors - will be refreshed in loop
+    extern InventoryManager g_inventoryMgr;
+    extern int g_currentPlayerID;
+    Theme* equippedTheme = nullptr;
+    Color themeColor = Color::Blue;
+    Color themeSecondary = Color::Cyan;
 
     // Load background image
     Texture backgroundTexture;
@@ -235,6 +244,11 @@ int showSubmenu(RenderWindow* window, const string options[], int count) {
 
     // Menu loop
     while (window->isOpen()) {
+        // Refresh theme colors every frame
+        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
+        themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
+        
         Event event;
         while (window->pollEvent(event)) {
             if (event.type == Event::Closed)
@@ -251,7 +265,7 @@ int showSubmenu(RenderWindow* window, const string options[], int count) {
         }
 
         // Drawing the UI
-        window->clear();
+        window->clear(themeColor);
         drawCommonUI(window, background, logo);
 
         // Draw selector on selected option
@@ -260,7 +274,7 @@ int showSubmenu(RenderWindow* window, const string options[], int count) {
 
         // Draw menu options with hover effect
         for (int i = 0; i < count; i++) {
-            optionText[i].setFillColor(i == selected ? Color::White : Color(169, 169, 169));
+            optionText[i].setFillColor(i == selected ? themeSecondary : Color(200, 200, 200));
             window->draw(optionText[i]);
         }
 
@@ -285,7 +299,6 @@ void showLevelSelection(RenderWindow* window) {
 
 // ------------------ SUB-MENU ------------------
 
-     int mode = 1; // default mode is single player
 void showGameMode(RenderWindow* window) {
     string options[] = { "Single Player", "Multiplayer", "Back" };
     int choice = showSubmenu(window, options, 3);
@@ -371,6 +384,13 @@ void showOptions(RenderWindow* window) {
         cout << "Font loading failed!" << endl;
         return;
     }
+    
+    // Get equipped theme colors - will be refreshed in loop
+    extern InventoryManager g_inventoryMgr;
+    extern int g_currentPlayerID;
+    Theme* equippedTheme = nullptr;
+    Color themeColor = Color::Blue;
+    Color themeSecondary = Color::Cyan;
 
     // Background & Logo
     Texture backgroundTexture;
@@ -400,6 +420,11 @@ void showOptions(RenderWindow* window) {
     selector.setFillColor(Color(128, 128, 128, 150));
 
     while (window->isOpen()) {
+        // Refresh theme colors every frame
+        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
+        themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
+        
         Event event;
         while (window->pollEvent(event)) {
             if (event.type == Event::Closed)
@@ -423,14 +448,14 @@ void showOptions(RenderWindow* window) {
             }
         }
 
-        window->clear();
+        window->clear(themeColor);
         drawCommonUI(window, background, logo);
 
         selector.setPosition(55, 230 + selected * 30);
         window->draw(selector);
 
         for (int i = 0; i < count; i++) {
-            texts[i].setFillColor(i == selected ? Color::White : Color(169, 169, 169));
+            texts[i].setFillColor(i == selected ? themeSecondary : Color(200, 200, 200));
             window->draw(texts[i]);
         }
 
@@ -486,7 +511,29 @@ void showMenu(RenderWindow* window) {
         logo.setScale(350.0f / logo.getLocalBounds().width, 90.0f / logo.getLocalBounds().height);
     }
 
+    // Load player profile to display level and XP
+    PlayerProfile currentProfile(g_currentPlayerID, g_currentUsername);
+    
+    // Get equipped theme colors - will be refreshed in the loop
+    extern InventoryManager g_inventoryMgr;
+    Theme* equippedTheme = nullptr;
+    Color themeColor = Color::Blue;
+    Color themeSecondary = Color::Cyan;
+    
+    // Create text for player info
+    Text playerInfoText;
+    playerInfoText.setFont(font);
+    playerInfoText.setCharacterSize(20);
+    playerInfoText.setStyle(Text::Bold);
+    playerInfoText.setPosition(430, 15); // Top right corner
+
     while (window->isOpen()) {
+        // Refresh theme colors every frame to reflect changes from inventory
+        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
+        themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
+        playerInfoText.setFillColor(themeSecondary); // Update player info color
+        
         Event event;
         while (window->pollEvent(event)) { // event listner 
             if (event.type == Event::Closed)
@@ -504,6 +551,8 @@ void showMenu(RenderWindow* window) {
                         } else if (mode == 2) {
                             MultiGame(window, difficulty, g_currentPlayerID, g_currentUsername, g_currentPlayerID, g_currentUsername);
                         }
+                        // Reload profile after game ends to show updated stats
+                        currentProfile = PlayerProfile(g_currentPlayerID, g_currentUsername);
                     } else if (selected == 1) {
                         showOptions(window);
                     } else if (selected == 2) {
@@ -513,7 +562,10 @@ void showMenu(RenderWindow* window) {
                     } else if (selected == 3) {
                         // Inventory menu
                         extern InventoryManager g_inventoryMgr;
-                        showInventoryMenu(window, &g_inventoryMgr, g_currentPlayerID, 1); // level 1 for now
+                        PlayerProfile tempProfile(g_currentPlayerID, g_currentUsername);
+                        showInventoryMenu(window, &g_inventoryMgr, g_currentPlayerID, tempProfile.getCurrentLevel());
+                        // Reload profile after inventory (in case auto-unlocks affected level)
+                        currentProfile = PlayerProfile(g_currentPlayerID, g_currentUsername);
                     } else if (selected == 4) {
                         cout<<"Made with love by Saim Zaib and Amish Munir"<<endl;
                     } else if (selected == 5) {
@@ -523,21 +575,41 @@ void showMenu(RenderWindow* window) {
             }
         }
 
-        window->clear();
+        window->clear(themeColor);
         drawCommonUI(window, background, logo);
 
         selector.setPosition(55, 230 + selected * 30);
         window->draw(selector);
 
-        // Update text colors for hover effect (selected option turns white)
+        // Update text colors for hover effect (selected option uses secondary color)
         for (int i = 0; i < Max_menu; i++) {
             if (i == selected) {
-                menu[i].setFillColor(Color::White);  // Hover color (white)
+                menu[i].setFillColor(themeSecondary);  // Hover color (theme secondary)
             } else {
-                menu[i].setFillColor(Color(169, 169, 169));   // Default color (gray)
+                menu[i].setFillColor(Color(200, 200, 200));   // Default color (light gray)
             }
             window->draw(menu[i]);
         }
+
+        // Display player info
+        string playerInfo = "PLAYER INFO\n";
+        playerInfo += "-------------\n";
+        playerInfo += g_currentUsername + "\n";
+        playerInfo += "Lvl " + to_string(currentProfile.getCurrentLevel()) + " - " + currentProfile.getLevelTitle() + "\n";
+        playerInfo += "XP: " + to_string(currentProfile.getCurrentXP()) + "/" + to_string(currentProfile.getXPToNextLevel()) + "\n";
+        
+        // Progress bar
+        int barLength = 15;
+        int filled = static_cast<int>(currentProfile.getXPProgress() * barLength);
+        string progressBar = "[";
+        for (int i = 0; i < barLength; i++) {
+            progressBar += (i < filled) ? "=" : "-";
+        }
+        progressBar += "] " + to_string(static_cast<int>(currentProfile.getXPProgress() * 100)) + "%";
+        playerInfo += progressBar;
+        
+        playerInfoText.setString(playerInfo);
+        window->draw(playerInfoText);
 
         window->display();
     }
@@ -555,6 +627,13 @@ void showPauseMenu(RenderWindow* window) {
         cout << "Font loading failed!" << endl;
         return;
     }
+    
+    // Get equipped theme colors - will be refreshed in loop
+    extern InventoryManager g_inventoryMgr;
+    extern int g_currentPlayerID;
+    Theme* equippedTheme = nullptr;
+    Color themeColor = Color::Blue;
+    Color themeSecondary = Color::Cyan;
 
     Text menu[pauseMenu];
     string items[pauseMenu] = { "RESUME", "RESTART", "MAIN MENU", "EXIT" };
@@ -585,6 +664,11 @@ void showPauseMenu(RenderWindow* window) {
     }
 
     while (window->isOpen()) {
+        // Refresh theme colors every frame
+        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
+        themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
+        
         Event event;
         while (window->pollEvent(event)) {
             if (event.type == Event::Closed)
@@ -614,18 +698,18 @@ void showPauseMenu(RenderWindow* window) {
             }
         }
 
-        window->clear();
+        window->clear(themeColor);
         drawCommonUI(window, background, logo);
 
         selector.setPosition(55, 230 + selected * 30);
         window->draw(selector);
 
-        // Update text colors for hover effect (selected option turns white)
+        // Update text colors for hover effect (selected option uses theme secondary)
         for (int i = 0; i < pauseMenu; i++) {
             if (i == selected) {
-                menu[i].setFillColor(Color::White);  // Hover color (white)
+                menu[i].setFillColor(themeSecondary);  // Hover color (theme secondary)
             } else {
-                menu[i].setFillColor(Color(169, 169, 169));   // Default color (gray)
+                menu[i].setFillColor(Color(200, 200, 200));   // Default color (light gray)
             }
             window->draw(menu[i]);
         }
@@ -645,6 +729,13 @@ void showEndMenu(RenderWindow* window, int score) {
         cout << "Font loading failed!" << endl;
         return;
     }
+    
+    // Get equipped theme colors
+    extern InventoryManager g_inventoryMgr;
+    extern int g_currentPlayerID;
+    Theme* equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+    Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
+    Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
 
     // Load background
     Texture backgroundTexture;
@@ -665,14 +756,14 @@ void showEndMenu(RenderWindow* window, int score) {
     scoreText.setFont(font);
     scoreText.setCharacterSize(35);
     scoreText.setString("Your Score: " + to_string(score));
-    scoreText.setFillColor(Color::Yellow);
+    scoreText.setFillColor(themeSecondary); // Use theme secondary color
     scoreText.setPosition(250, 190);
 
     // High score text
     Text highScoreText;
     highScoreText.setFont(font);
     highScoreText.setCharacterSize(24);
-    highScoreText.setFillColor(Color::Green);
+    highScoreText.setFillColor(Color(100, 255, 100)); // Bright green
     highScoreText.setPosition(60, 220);
 
     // Check if score is in top 5
@@ -708,6 +799,12 @@ void showEndMenu(RenderWindow* window, int score) {
     selector.setPosition(55, 270);
 
     while (window->isOpen()) {
+        // Refresh theme colors every frame
+        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
+        themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
+        scoreText.setFillColor(themeSecondary); // Update score color
+        
         Event event;
         while (window->pollEvent(event)) {
             if (event.type == Event::Closed)
@@ -730,7 +827,7 @@ void showEndMenu(RenderWindow* window, int score) {
             }
         }
 
-        window->clear();
+        window->clear(themeColor);
         drawCommonUI(window, background, gameOver);
 
         window->draw(scoreText);
@@ -742,9 +839,9 @@ void showEndMenu(RenderWindow* window, int score) {
 
         for (int i = 0; i < options; i++) {
             if (i == selected)
-                menu[i].setFillColor(Color::White);
+                menu[i].setFillColor(themeSecondary);
             else
-                menu[i].setFillColor(Color(169, 169, 169));
+                menu[i].setFillColor(Color(200, 200, 200));
             window->draw(menu[i]);
         }
 
@@ -761,6 +858,13 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
         cout << "Font loading failed!" << endl;
         return;
     }
+    
+    // Get equipped theme colors
+    extern InventoryManager g_inventoryMgr;
+    extern int g_currentPlayerID;
+    Theme* equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+    Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
+    Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
 
     // Load background
     Texture backgroundTexture;
@@ -781,14 +885,14 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
     scoreText.setFont(font);
     scoreText.setCharacterSize(35);
     scoreText.setString(string + " Score: " + to_string(score));
-    scoreText.setFillColor(Color::Yellow);
+    scoreText.setFillColor(themeSecondary); // Use theme secondary color
     scoreText.setPosition(250, 190);
 
     // High score text
     Text winner;
     winner.setFont(font);
     winner.setCharacterSize(24);
-    winner.setFillColor(Color::Green);
+    winner.setFillColor(Color(100, 255, 100)); // Bright green
     winner.setPosition(60, 220);
     winner.setString(string);
     
@@ -813,6 +917,12 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
     selector.setPosition(55, 270);
 
     while (window->isOpen()) {
+        // Refresh theme colors every frame
+        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
+        themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
+        scoreText.setFillColor(themeSecondary); // Update score color
+        
         Event event;
         while (window->pollEvent(event)) {
             if (event.type == Event::Closed)
@@ -835,7 +945,7 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
             }
         }
 
-        window->clear();
+        window->clear(themeColor);
         drawCommonUI(window, background, gameOver);
 
         window->draw(scoreText);
@@ -847,9 +957,9 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
 
         for (int i = 0; i < options; i++) {
             if (i == selected)
-                menu[i].setFillColor(Color::White);
+                menu[i].setFillColor(themeSecondary);
             else
-                menu[i].setFillColor(Color(169, 169, 169));
+                menu[i].setFillColor(Color(200, 200, 200));
             window->draw(menu[i]);
         }
 
@@ -973,6 +1083,9 @@ void showInventoryMenu(sf::RenderWindow* window, InventoryManager* inventoryMgr,
     using namespace sf;
     using namespace std;
     
+    // Auto-unlock themes based on current level
+    inventoryMgr->autoUnlockByLevel(playerID, playerLevel);
+    
     // Clear any pending events to prevent auto-triggering
     Event clearEvent;
     while (window->pollEvent(clearEvent)) { }
@@ -992,29 +1105,19 @@ void showInventoryMenu(sf::RenderWindow* window, InventoryManager* inventoryMgr,
     }
     Sprite background(bgTexture);
     
-    Text title("THEME INVENTORY", font, 40);
-    title.setPosition(220, 50);
-    title.setFillColor(Color::Cyan);
+    Text title("THEME INVENTORY", font, 36);
+    title.setPosition(220, 20);
+    title.setFillColor(Color(0, 255, 255));
+    title.setStyle(Text::Bold);
     
-    const int menuItems = 4;
-    Text menu[menuItems];
-    string menuText[menuItems] = {
-        "View My Inventory",
-        "Browse Available Themes",
-        "Equip Theme",
-        "Back to Menu"
-    };
-    
-    for (int i = 0; i < menuItems; i++) {
-        menu[i].setFont(font);
-        menu[i].setString(menuText[i]);
-        menu[i].setCharacterSize(24);
-        menu[i].setPosition(250, 150 + i * 50);
-    }
+    Text levelInfo("Your Level: " + to_string(playerLevel), font, 20);
+    levelInfo.setPosition(30, 70);
+    levelInfo.setFillColor(Color::Yellow);
     
     int selected = 0;
-    RectangleShape selector(Vector2f(400, 40));
-    selector.setFillColor(Color(128, 128, 128, 150));
+    const int totalThemes = 10;
+    int scrollOffset = 0;
+    const int visibleThemes = 6;
     
     while (window->isOpen()) {
         Event event;
@@ -1024,25 +1127,26 @@ void showInventoryMenu(sf::RenderWindow* window, InventoryManager* inventoryMgr,
             
             if (event.type == Event::KeyReleased) {
                 if (event.key.code == Keyboard::Up) {
-                    selected = (selected - 1 + menuItems) % menuItems;
+                    selected = (selected - 1 + totalThemes) % totalThemes;
+                    if (selected < scrollOffset) scrollOffset = selected;
+                    if (selected >= scrollOffset + visibleThemes) scrollOffset = selected - visibleThemes + 1;
                 } else if (event.key.code == Keyboard::Down) {
-                    selected = (selected + 1) % menuItems;
+                    selected = (selected + 1) % totalThemes;
+                    if (selected < scrollOffset) scrollOffset = selected;
+                    if (selected >= scrollOffset + visibleThemes) scrollOffset = selected - visibleThemes + 1;
                 } else if (event.key.code == Keyboard::Return) {
-                    if (selected == 0) {
-                        // View inventory
-                        inventoryMgr->displayPlayerInventory(playerID);
-                    } else if (selected == 1) {
-                        // Browse themes
-                        inventoryMgr->displayAvailableThemes(playerID, playerLevel);
-                    } else if (selected == 2) {
-                        // Equip theme
-                        cout << "Enter theme ID to equip: ";
-                        int themeID;
-                        cin >> themeID;
+                    int themeID = selected + 1;
+                    Theme* theme = inventoryMgr->getThemeTree()->searchTheme(themeID);
+                    PlayerInventory* pInv = inventoryMgr->getPlayerInventory(playerID);
+                    
+                    if (pInv && pInv->unlockedThemes[selected]) {
                         inventoryMgr->equipTheme(playerID, themeID);
-                    } else if (selected == 3) {
-                        return; // Back to menu
+                        cout << "Equipped: " << theme->name << endl;
+                    } else {
+                        cout << "Theme is locked!" << endl;
                     }
+                } else if (event.key.code == Keyboard::Escape) {
+                    return; // Back to menu
                 }
             }
         }
@@ -1050,18 +1154,78 @@ void showInventoryMenu(sf::RenderWindow* window, InventoryManager* inventoryMgr,
         window->clear();
         window->draw(background);
         window->draw(title);
+        window->draw(levelInfo);
         
-        selector.setPosition(245, 145 + selected * 50);
-        window->draw(selector);
+        // Draw theme list
+        PlayerInventory* pInv = inventoryMgr->getPlayerInventory(playerID);
+        int yPos = 110;
         
-        for (int i = 0; i < menuItems; i++) {
-            if (i == selected)
-                menu[i].setFillColor(Color::White);
-            else
-                menu[i].setFillColor(Color(200, 200, 200));
-            window->draw(menu[i]);
+        for (int i = scrollOffset; i < scrollOffset + visibleThemes && i < totalThemes; i++) {
+            Theme* theme = inventoryMgr->getThemeTree()->searchTheme(i + 1);
+            if (!theme) continue;
+            
+            bool isUnlocked = pInv && pInv->unlockedThemes[i];
+            bool isEquipped = pInv && (pInv->equippedThemeID == i + 1);
+            bool canUnlock = !theme->isPremium && theme->unlockLevel <= playerLevel;
+            
+            // Background box
+            RectangleShape themeBox(Vector2f(680, 50));
+            themeBox.setPosition(20, yPos);
+            
+            if (i == selected) {
+                themeBox.setFillColor(Color(100, 100, 100, 200));
+                themeBox.setOutlineColor(Color::Cyan);
+                themeBox.setOutlineThickness(2);
+            } else {
+                themeBox.setFillColor(Color(50, 50, 50, 150));
+                themeBox.setOutlineThickness(0);
+            }
+            window->draw(themeBox);
+            
+            // Color preview
+            RectangleShape colorPreview(Vector2f(40, 40));
+            colorPreview.setPosition(25, yPos + 5);
+            colorPreview.setFillColor(theme->primaryColor);
+            colorPreview.setOutlineColor(theme->secondaryColor);
+            colorPreview.setOutlineThickness(3);
+            window->draw(colorPreview);
+            
+            // Theme name
+            Text themeName(theme->name, font, 22);
+            themeName.setPosition(75, yPos + 5);
+            themeName.setFillColor(isUnlocked ? Color::White : Color(150, 150, 150));
+            themeName.setStyle(isEquipped ? Text::Bold : Text::Regular);
+            window->draw(themeName);
+            
+            // Status text
+            Text status("", font, 18);
+            status.setPosition(350, yPos + 10);
+            
+            if (isEquipped) {
+                status.setString("[EQUIPPED]");
+                status.setFillColor(Color::Green);
+            } else if (isUnlocked) {
+                status.setString("[UNLOCKED] - Press Enter");
+                status.setFillColor(Color(100, 255, 100));
+            } else if (!canUnlock && theme->unlockLevel > playerLevel) {
+                status.setString("Level " + to_string(theme->unlockLevel) + " Required");
+                status.setFillColor(Color::Red);
+            } else if (theme->isPremium) {
+                status.setString("[PREMIUM]");
+                status.setFillColor(Color::Yellow);
+            }
+            window->draw(status);
+            
+            yPos += 55;
         }
+        
+        // Instructions
+        Text instructions("Arrow Keys: Navigate | Enter: Equip | ESC: Back", font, 16);
+        instructions.setPosition(180, 420);
+        instructions.setFillColor(Color(200, 200, 200));
+        window->draw(instructions);
         
         window->display();
     }
 }
+

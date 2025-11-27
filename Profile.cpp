@@ -12,6 +12,7 @@
 #include <iostream>
 #include <sstream>
 #include <ctime>
+#include <cmath>
 
 using namespace std;
 using namespace sf;
@@ -23,6 +24,9 @@ PlayerProfile::PlayerProfile() {
     totalPoints = 0;
     matchesWon = 0;
     matchesLost = 0;
+    currentLevel = 1;
+    currentXP = 0;
+    xpToNextLevel = 100;
     friendsHead = nullptr;
     matchCount = 0;
     profileFile = "profile_0.txt";
@@ -35,6 +39,9 @@ PlayerProfile::PlayerProfile(int id, string name) {
     totalPoints = 0;
     matchesWon = 0;
     matchesLost = 0;
+    currentLevel = 1;
+    currentXP = 0;
+    xpToNextLevel = 100;
     friendsHead = nullptr;
     matchCount = 0;
     profileFile = "profile_" + to_string(id) + ".txt";
@@ -59,10 +66,11 @@ void PlayerProfile::loadProfile() {
     ifstream file(profileFile);
     if (!file.is_open()) {
         cout << "Creating new profile for " << username << endl;
+        calculateXPRequirement();
         return;
     }
     
-    file >> playerID >> totalPoints >> matchesWon >> matchesLost >> matchCount;
+    file >> playerID >> totalPoints >> matchesWon >> matchesLost >> currentLevel >> currentXP >> matchCount;
     
     // Load match history
     for (int i = 0; i < matchCount && i < 50; i++) {
@@ -88,6 +96,7 @@ void PlayerProfile::loadProfile() {
     }
     
     file.close();
+    calculateXPRequirement();
 }
 
 // Save profile to file
@@ -98,7 +107,8 @@ void PlayerProfile::saveProfile() {
         return;
     }
     
-    file << playerID << " " << totalPoints << " " << matchesWon << " " << matchesLost << " " << matchCount << "\n";
+    file << playerID << " " << totalPoints << " " << matchesWon << " " << matchesLost << " " 
+         << currentLevel << " " << currentXP << " " << matchCount << "\n";
     
     // Save match history
     for (int i = 0; i < matchCount; i++) {
@@ -125,6 +135,11 @@ void PlayerProfile::saveProfile() {
 // Add points
 void PlayerProfile::addPoints(int points) {
     totalPoints += points;
+    
+    // Convert score to XP (1 point = 5 XP)
+    int xpGained = getXPFromScore(points);
+    addXP(xpGained);
+    
     saveProfile();
 }
 
@@ -236,7 +251,10 @@ void PlayerProfile::displayProfile(RenderWindow* window, Font& font) {
     info.setPosition(100, 100);
     
     string profileText = "Username: " + username + "\n";
-    profileText += "Player ID: " + to_string(playerID) + "\n";
+    profileText += "Player ID: " + to_string(playerID) + "\n\n";
+    profileText += "Level: " + to_string(currentLevel) + " (" + getLevelTitle() + ")\n";
+    profileText += "XP: " + to_string(currentXP) + " / " + to_string(xpToNextLevel) + "\n";
+    profileText += "Progress: " + to_string(static_cast<int>(getXPProgress() * 100)) + "%\n\n";
     profileText += "Total Points: " + to_string(totalPoints) + "\n";
     profileText += "Matches Won: " + to_string(matchesWon) + "\n";
     profileText += "Matches Lost: " + to_string(matchesLost) + "\n";
@@ -245,6 +263,28 @@ void PlayerProfile::displayProfile(RenderWindow* window, Font& font) {
     
     info.setString(profileText);
     window->draw(info);
+    
+    // Draw XP progress bar
+    RectangleShape progressBg(Vector2f(400, 25));
+    progressBg.setPosition(100, 250);
+    progressBg.setFillColor(Color(50, 50, 50));
+    progressBg.setOutlineColor(Color::White);
+    progressBg.setOutlineThickness(2);
+    window->draw(progressBg);
+    
+    RectangleShape progressBar(Vector2f(400 * getXPProgress(), 25));
+    progressBar.setPosition(100, 250);
+    
+    // Color based on progress
+    if (getXPProgress() < 0.33f) {
+        progressBar.setFillColor(Color::Red);
+    } else if (getXPProgress() < 0.66f) {
+        progressBar.setFillColor(Color::Yellow);
+    } else {
+        progressBar.setFillColor(Color::Green);
+    }
+    
+    window->draw(progressBar);
 }
 
 // Display match history
@@ -313,4 +353,68 @@ void PlayerProfile::displayFriendsList(RenderWindow* window, Font& font) {
     instruction.setPosition(230, 400);
     instruction.setFillColor(Color(150, 150, 150));
     window->draw(instruction);
+}
+
+// Calculate XP requirement for next level (exponential growth)
+void PlayerProfile::calculateXPRequirement() {
+    // Formula: XP = 100 * (level^1.5)
+    // Level 1->2: 100 XP
+    // Level 2->3: 283 XP
+    // Level 3->4: 520 XP
+    // Level 4->5: 800 XP
+    // Level 5->6: 1118 XP
+    // And so on...
+    xpToNextLevel = static_cast<int>(100 * pow(currentLevel, 1.5));
+}
+
+// Check and handle level up
+void PlayerProfile::checkLevelUp() {
+    bool leveledUp = false;
+    
+    while (currentXP >= xpToNextLevel) {
+        currentXP -= xpToNextLevel;
+        currentLevel++;
+        calculateXPRequirement();
+        leveledUp = true;
+        
+        cout << "🎉 LEVEL UP! You are now Level " << currentLevel << " - " << getLevelTitle() << "!" << endl;
+    }
+    
+    if (leveledUp) {
+        saveProfile();
+    }
+}
+
+// Add XP and check for level up
+void PlayerProfile::addXP(int xp) {
+    currentXP += xp;
+    checkLevelUp();
+}
+
+// Get XP conversion from score
+int PlayerProfile::getXPFromScore(int score) const {
+    // 1 point = 5 XP
+    // Bonus XP for higher scores in a single game
+    int baseXP = score * 5;
+    
+    // Bonus XP tiers
+    if (score >= 200) baseXP += 100;       // Epic game bonus
+    else if (score >= 150) baseXP += 50;   // Great game bonus
+    else if (score >= 100) baseXP += 25;   // Good game bonus
+    
+    return baseXP;
+}
+
+// Get level title based on current level
+string PlayerProfile::getLevelTitle() const {
+    if (currentLevel >= 50) return "Xonix Legend";
+    else if (currentLevel >= 40) return "Grandmaster";
+    else if (currentLevel >= 35) return "Master";
+    else if (currentLevel >= 30) return "Expert";
+    else if (currentLevel >= 25) return "Veteran";
+    else if (currentLevel >= 20) return "Professional";
+    else if (currentLevel >= 15) return "Advanced";
+    else if (currentLevel >= 10) return "Skilled";
+    else if (currentLevel >= 5) return "Apprentice";
+    else return "Novice";
 }

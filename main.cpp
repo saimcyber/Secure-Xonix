@@ -388,6 +388,15 @@ void drop(int y, int x) {
 // ------------------ SingleGame Function ------------------
 
 void SingleGame(RenderWindow* window, int difficulty, int playerID, const string& username) {
+    // Create player profile at start
+    PlayerProfile profile(playerID, username);
+    
+    // Get player's equipped theme
+    extern InventoryManager g_inventoryMgr;
+    Theme* equippedTheme = g_inventoryMgr.getEquippedTheme(playerID);
+    Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
+    Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::White;
+    
     // Clear grid
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < N; j++) {
@@ -410,30 +419,61 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
         window->close();
         return;
     }
+    
+    // Load theme background if available
+    Texture themeBgTexture;
+    Sprite themeBgSprite;
+    bool hasThemeBackground = false;
+    if (equippedTheme && !equippedTheme->backgroundImage.empty()) {
+        if (themeBgTexture.loadFromFile(equippedTheme->backgroundImage)) {
+            themeBgSprite.setTexture(themeBgTexture);
+            // Scale background to fill window (720x450)
+            float scaleX = 720.0f / themeBgTexture.getSize().x;
+            float scaleY = 450.0f / themeBgTexture.getSize().y;
+            themeBgSprite.setScale(scaleX, scaleY);
+            hasThemeBackground = true;
+        }
+    }
 
     Text scoreText;
     scoreText.setFont(font);
     scoreText.setCharacterSize(24);
     scoreText.setFillColor(Color::White);
+    scoreText.setOutlineColor(Color::Black);
+    scoreText.setOutlineThickness(2);
     scoreText.setPosition(20, 10);
 
     Text timeText;
     timeText.setFont(font);
     timeText.setCharacterSize(24);
     timeText.setFillColor(Color::White);
+    timeText.setOutlineColor(Color::Black);
+    timeText.setOutlineThickness(2);
     timeText.setPosition(600, 10);
 
     Text moveText;
     moveText.setFont(font);
     moveText.setCharacterSize(24);
     moveText.setFillColor(Color::White);
+    moveText.setOutlineColor(Color::Black);
+    moveText.setOutlineThickness(2);
     moveText.setPosition(300, 10);
 
     Text powerUpText;
     powerUpText.setFont(font);
     powerUpText.setCharacterSize(24);
     powerUpText.setFillColor(Color::White);
+    powerUpText.setOutlineColor(Color::Black);
+    powerUpText.setOutlineThickness(2);
     powerUpText.setPosition(450, 10);
+
+    Text levelText;
+    levelText.setFont(font);
+    levelText.setCharacterSize(18);
+    levelText.setFillColor(Color::Cyan);
+    levelText.setOutlineColor(Color::Black);
+    levelText.setOutlineThickness(2);
+    levelText.setPosition(20, 50);
 
     Texture t1, t2, t3;
     if (!t1.loadFromFile("images/tiles.png")) {
@@ -455,6 +495,15 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
     Sprite sTile(t1), sGameover(t2), sEnemy(t3);
     sGameover.setPosition(100, 100);
     sEnemy.setOrigin(20, 20);
+    
+    // Apply theme colors to sprites - use brighter colors for visibility over backgrounds
+    if (hasThemeBackground) {
+        sTile.setColor(Color(255, 255, 255, 220)); // White with slight transparency
+        sEnemy.setColor(Color(255, 50, 50)); // Bright red for enemies
+    } else {
+        sTile.setColor(themeColor);
+        sEnemy.setColor(themeSecondary);
+    }
 
     Enemy a[100];
     int enemyCount = 2; //default
@@ -667,7 +716,12 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
             }
         }
 
-        window->clear(enemiesPaused ? Color::Red : Color::Black);
+        window->clear(enemiesPaused ? Color(100, 0, 0) : (hasThemeBackground ? Color::Black : themeColor));
+        
+        // Draw theme background if available
+        if (hasThemeBackground && !enemiesPaused) {
+            window->draw(themeBgSprite);
+        }
 
 
         for (int i = 0; i < M; i++)
@@ -696,6 +750,9 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
         powerUpText.setString("Power-Ups: " + to_string(powerUpCount));
         window->draw(powerUpText);
 
+        levelText.setString("Lvl " + to_string(profile.getCurrentLevel()) + " | XP: " + to_string(profile.getCurrentXP()) + "/" + to_string(profile.getXPToNextLevel()));
+        window->draw(levelText);
+
         sEnemy.rotate(100);
         for (int i = 0; i < enemyCount; i++) {
             sEnemy.setPosition(a[i].x, a[i].y);
@@ -710,7 +767,6 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
             MinHeapLeaderboard leaderboard;
             leaderboard.insertOrUpdate(playerID, username, score);
             
-            PlayerProfile profile(playerID, username);
             profile.addPoints(score);
             
             showEndMenu(window, score);
@@ -724,6 +780,16 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
 
 
 void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1Name, int p2ID, const string& p2Name) {
+    // Create player profiles at start
+    PlayerProfile p1Profile(p1ID, p1Name);
+    PlayerProfile p2Profile(p2ID, p2Name);
+    
+    // Get player's equipped theme (use P1's theme for multiplayer)
+    extern InventoryManager g_inventoryMgr;
+    Theme* equippedTheme = g_inventoryMgr.getEquippedTheme(p1ID);
+    Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
+    Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::White;
+    
     // Seed random number generator for enemy spawning
     srand(static_cast<unsigned>(time(nullptr)));
 
@@ -750,12 +816,29 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
         window->close();
         return;
     }
+    
+    // Load theme background if available
+    Texture themeBgTexture;
+    Sprite themeBgSprite;
+    bool hasThemeBackground = false;
+    if (equippedTheme && !equippedTheme->backgroundImage.empty()) {
+        if (themeBgTexture.loadFromFile(equippedTheme->backgroundImage)) {
+            themeBgSprite.setTexture(themeBgTexture);
+            // Scale background to fill window (720x450)
+            float scaleX = 720.0f / themeBgTexture.getSize().x;
+            float scaleY = 450.0f / themeBgTexture.getSize().y;
+            themeBgSprite.setScale(scaleX, scaleY);
+            hasThemeBackground = true;
+        }
+    }
 
     // Configure Player 1 score text displayed on left side
     Text p1ScoreText;
     p1ScoreText.setFont(font);
     p1ScoreText.setCharacterSize(20);
     p1ScoreText.setFillColor(Color::Red);
+    p1ScoreText.setOutlineColor(Color::Black);
+    p1ScoreText.setOutlineThickness(2);
     p1ScoreText.setPosition(20, 10.f);
 
     // Configure Player 1 power-up count text
@@ -763,6 +846,8 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
     p1PowerUpText.setFont(font);
     p1PowerUpText.setCharacterSize(20);
     p1PowerUpText.setFillColor(Color::White);
+    p1PowerUpText.setOutlineColor(Color::Black);
+    p1PowerUpText.setOutlineThickness(2);
     p1PowerUpText.setPosition(20, 40.f);
 
     // Configure Player 2 score text displayed on right side
@@ -770,6 +855,8 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
     p2ScoreText.setFont(font);
     p2ScoreText.setCharacterSize(20);
     p2ScoreText.setFillColor(Color::White);
+    p2ScoreText.setOutlineColor(Color::Black);
+    p2ScoreText.setOutlineThickness(2);
     p2ScoreText.setPosition(500, 10.f);
 
     // Configure Player 2 power-up count text
@@ -777,6 +864,8 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
     p2PowerUpText.setFont(font);
     p2PowerUpText.setCharacterSize(20);
     p2PowerUpText.setFillColor(Color::White);
+    p2PowerUpText.setOutlineColor(Color::Black);
+    p2PowerUpText.setOutlineThickness(2);
     p2PowerUpText.setPosition(500, 40.f);
 
     // Configure game time text displayed in center
@@ -785,6 +874,18 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
     timeText.setCharacterSize(20);
     timeText.setFillColor(Color::Yellow);
     timeText.setPosition(300, 10);
+
+    Text p1LevelText;
+    p1LevelText.setFont(font);
+    p1LevelText.setCharacterSize(16);
+    p1LevelText.setFillColor(Color::Cyan);
+    p1LevelText.setPosition(20, 70);
+
+    Text p2LevelText;
+    p2LevelText.setFont(font);
+    p2LevelText.setCharacterSize(16);
+    p2LevelText.setFillColor(Color::Cyan);
+    p2LevelText.setPosition(500, 70);
 
     // Load textures for tiles, game over screen, and enemies
     Texture t1, t2, t3;
@@ -808,6 +909,15 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
     Sprite sTile(t1), sGameover(t2), sEnemy(t3);
     sGameover.setPosition(100, 100); // Center game over sprite
     sEnemy.setOrigin(20, 20); // Set enemy sprite origin to center
+    
+    // Apply theme colors to sprites - use brighter colors for visibility over backgrounds
+    if (hasThemeBackground) {
+        sTile.setColor(Color(255, 255, 255, 220)); // White with slight transparency
+        sEnemy.setColor(Color(255, 50, 50)); // Bright red for enemies
+    } else {
+        sTile.setColor(themeColor);
+        sEnemy.setColor(themeSecondary);
+    }
 
     // Array to hold up to 100 enemies
     Enemy a[100];
@@ -1193,7 +1303,12 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
         }
 
         // Clear window for rendering
-        window->clear(enemiesPaused ? Color::Red : Color::Black);
+        window->clear(enemiesPaused ? Color::Red : (hasThemeBackground ? Color::Black : themeColor));
+        
+        // Draw theme background if available
+        if (hasThemeBackground && !enemiesPaused) {
+            window->draw(themeBgSprite);
+        }
 
         // Draw grid (walls and trails)
         for (int i = 0; i < M; i++) {
@@ -1246,6 +1361,11 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
         window->draw(p1PowerUpText);
         p2PowerUpText.setString("P2 Power-Ups: " + to_string(p2PowerUpCount));
         window->draw(p2PowerUpText);
+        
+        p1LevelText.setString("Lvl " + to_string(p1Profile.getCurrentLevel()) + "\n" + to_string(p1Profile.getCurrentXP()) + "/" + to_string(p1Profile.getXPToNextLevel()));
+        window->draw(p1LevelText);
+        p2LevelText.setString("Lvl " + to_string(p2Profile.getCurrentLevel()) + "\n" + to_string(p2Profile.getCurrentXP()) + "/" + to_string(p2Profile.getXPToNextLevel()));
+        window->draw(p2LevelText);
 
         // Handle game over for both players
         if (!p1Game && !p2Game) {
@@ -1269,8 +1389,6 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
             leaderboard.insertOrUpdate(p1ID, p1Name, p1Score);
             leaderboard.insertOrUpdate(p2ID, p2Name, p2Score);
             
-            PlayerProfile p1Profile(p1ID, p1Name);
-            PlayerProfile p2Profile(p2ID, p2Name);
             p1Profile.addPoints(p1Score);
             p2Profile.addPoints(p2Score);
             p1Profile.addMatchResult(p2Name, p1Score, p2Score, p1Won);

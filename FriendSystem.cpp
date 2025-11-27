@@ -16,6 +16,12 @@ using namespace std;
 // Constructor
 FriendSystem::FriendSystem() {
     playerCount = 0;
+    
+    // Initialize hash table to -1 (empty)
+    for (int i = 0; i < HASH_TABLE_SIZE; i++) {
+        hashTable[i] = -1;
+    }
+    
     loadFriendData();
 }
 
@@ -51,14 +57,56 @@ int FriendSystem::findPlayerIndex(int playerID) {
     return -1;
 }
 
-// Find player index by username (linear search)
-int FriendSystem::findPlayerIndexByUsername(const string& username) {
-    for (int i = 0; i < playerCount; i++) {
-        if (players[i].username == username) {
-            return i;
+// ===== Hash Table Implementation =====
+
+// Simple hash function (sum of ASCII values mod table size)
+int FriendSystem::hashFunction(const string& username) {
+    int hash = 0;
+    for (char c : username) {
+        hash = (hash * 31 + c) % HASH_TABLE_SIZE;
+    }
+    return hash;
+}
+
+// Insert username into hash table (with linear probing for collisions)
+void FriendSystem::insertIntoHashTable(const string& username, int playerIndex) {
+    int hash = hashFunction(username);
+    int originalHash = hash;
+    
+    // Linear probing: find next empty slot
+    while (hashTable[hash] != -1) {
+        hash = (hash + 1) % HASH_TABLE_SIZE;
+        if (hash == originalHash) {
+            // Table is full (shouldn't happen with 100 players and 101 slots)
+            return;
         }
     }
-    return -1;
+    
+    hashTable[hash] = playerIndex;
+}
+
+// Search for username in hash table (returns player index or -1)
+int FriendSystem::searchHashTable(const string& username) {
+    int hash = hashFunction(username);
+    int originalHash = hash;
+    
+    // Linear probing: search until we find the username or an empty slot
+    while (hashTable[hash] != -1) {
+        if (players[hashTable[hash]].username == username) {
+            return hashTable[hash];  // Found it!
+        }
+        hash = (hash + 1) % HASH_TABLE_SIZE;
+        if (hash == originalHash) {
+            break;  // Searched entire table
+        }
+    }
+    
+    return -1;  // Not found
+}
+
+// Find player index by username (now uses hash table - O(1) average case)
+int FriendSystem::findPlayerIndexByUsername(const string& username) {
+    return searchHashTable(username);
 }
 
 // Add player to the system
@@ -75,6 +123,10 @@ void FriendSystem::addPlayer(int playerID, const string& username) {
     players[playerCount].username = username;
     players[playerCount].friendsHead = nullptr;
     players[playerCount].pendingHead = nullptr;
+    
+    // Insert into hash table for fast lookup
+    insertIntoHashTable(username, playerCount);
+    
     playerCount++;
 }
 

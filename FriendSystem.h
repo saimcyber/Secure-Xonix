@@ -46,8 +46,16 @@ struct PlayerWithFriends {
 // Friend System Manager
 class FriendSystem {
 private:
+    static const int HASH_TABLE_SIZE = 101;  // Prime number for better distribution
+    
     PlayerWithFriends players[100];  // Array of players
     int playerCount;
+    int hashTable[HASH_TABLE_SIZE];  // Maps username hash -> player index (-1 = empty)
+    
+    // Hash function
+    int hashFunction(const std::string& username);
+    void insertIntoHashTable(const std::string& username, int playerIndex);
+    int searchHashTable(const std::string& username);
     
     // Helper functions
     int findPlayerIndex(int playerID);

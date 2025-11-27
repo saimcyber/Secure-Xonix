@@ -20,31 +20,40 @@ struct Theme {
     std::string description;
     sf::Color primaryColor;
     sf::Color secondaryColor;
+    std::string backgroundImage;  // Path to background image
     int unlockLevel;  // Level required to unlock
     bool isPremium;   // Requires premium purchase
     
     Theme() : themeID(0), name(""), description(""), 
               primaryColor(sf::Color::White), secondaryColor(sf::Color::Black),
-              unlockLevel(0), isPremium(false) {}
+              backgroundImage(""), unlockLevel(0), isPremium(false) {}
     
-    Theme(int id, std::string n, std::string desc, sf::Color pc, sf::Color sc, int level, bool premium)
+    Theme(int id, std::string n, std::string desc, sf::Color pc, sf::Color sc, std::string bgImg, int level, bool premium)
         : themeID(id), name(n), description(desc), primaryColor(pc), secondaryColor(sc),
-          unlockLevel(level), isPremium(premium) {}
+          backgroundImage(bgImg), unlockLevel(level), isPremium(premium) {}
 };
 
-// BST Node
+// BST Node with AVL height tracking
 struct ThemeNode {
     Theme theme;
     ThemeNode* left;
     ThemeNode* right;
+    int height;  // Height of node for AVL balancing
     
-    ThemeNode(Theme t) : theme(t), left(nullptr), right(nullptr) {}
+    ThemeNode(Theme t) : theme(t), left(nullptr), right(nullptr), height(1) {}
 };
 
-// Binary Search Tree for Themes
+// Binary Search Tree for Themes (AVL-balanced)
 class ThemeInventory {
 private:
     ThemeNode* root;
+    
+    // AVL Helper functions
+    int getHeight(ThemeNode* node);
+    int getBalanceFactor(ThemeNode* node);
+    ThemeNode* rotateLeft(ThemeNode* node);
+    ThemeNode* rotateRight(ThemeNode* node);
+    ThemeNode* balanceNode(ThemeNode* node);
     
     // Helper functions
     ThemeNode* insertHelper(ThemeNode* node, Theme theme);
@@ -99,7 +108,10 @@ public:
     void addPlayer(int playerID);
     bool unlockTheme(int playerID, int themeID);
     bool equipTheme(int playerID, int themeID);
+    void autoUnlockByLevel(int playerID, int playerLevel);
     Theme* getEquippedTheme(int playerID);
     void displayPlayerInventory(int playerID);
     void displayAvailableThemes(int playerID, int playerLevel);
+    ThemeInventory* getThemeTree() { return &themeTree; }
+    PlayerInventory* getPlayerInventory(int playerID);
 };
