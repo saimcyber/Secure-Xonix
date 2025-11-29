@@ -48,7 +48,7 @@ extern std::string g_currentUsername;
    
 
 bool loadMenuSound() {
-    if (!changeBuffer.loadFromFile("audio/change.wav")) {
+    if (!changeBuffer.loadFromFile("assets/audio/change.wav")) {
         cout << "Failed to load sound\n";
         return false;
     }
@@ -99,7 +99,7 @@ void drawCommonUI(RenderWindow* window, Sprite& background, Sprite& logo) {
 void showScoreBoard(RenderWindow* window) {
     // Load font
     Font font;
-    if (!font.loadFromFile("Fonts/OpenSans.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/OpenSans.ttf")) {
         cout << "Font not loaded!" << endl;
         return;
     }
@@ -108,7 +108,7 @@ void showScoreBoard(RenderWindow* window) {
 
     // Read scores from file
     string lines[5];
-    ifstream infile("scores.txt");
+    ifstream infile("data/scores.txt");
     int i = 0;
     while (i < 5 && getline(infile, lines[i])) {
         if (!lines[i].empty()) {  // Only count non-empty lines
@@ -122,13 +122,13 @@ void showScoreBoard(RenderWindow* window) {
 
     Texture backgroundTexture;
     Sprite background;
-     if (backgroundTexture.loadFromFile("images/Black.jpeg"))
+     if (backgroundTexture.loadFromFile("assets/images/Black.jpeg"))
         background.setTexture(backgroundTexture);
 
 
     Texture titleTexture;
     Sprite title;
-    if (titleTexture.loadFromFile("images/SCORE-TITLE.png")) {
+    if (titleTexture.loadFromFile("assets/images/SCORE-TITLE.png")) {
         title.setTexture(titleTexture);
         title.setPosition(150, 10);
         title.setScale(350.0f / title.getLocalBounds().width, 150.0f / title.getLocalBounds().height);
@@ -170,14 +170,14 @@ void showScoreBoard(RenderWindow* window) {
 // ------------------ NEW LEADERBOARD (MIN-HEAP) ------------------
 void showNewLeaderboard(RenderWindow* window, MinHeapLeaderboard* leaderboard) {
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Font loading failed!" << endl;
         return;
     }
 
     Texture backgroundTexture;
     Sprite background;
-    if (backgroundTexture.loadFromFile("images/Black.jpeg"))
+    if (backgroundTexture.loadFromFile("assets/images/Black.jpeg"))
         background.setTexture(backgroundTexture);
 
     while (window->isOpen()) {
@@ -201,7 +201,7 @@ int showSubmenu(RenderWindow* window, const string options[], int count) {
     int selected = 0;
 
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Font loading failed!" << endl;
         return -1;
     }
@@ -216,13 +216,13 @@ int showSubmenu(RenderWindow* window, const string options[], int count) {
     // Load background image
     Texture backgroundTexture;
     Sprite background;
-    if (backgroundTexture.loadFromFile("images/background.jpg"))
+    if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
         background.setTexture(backgroundTexture);
 
     // Load logo image
     Texture logoTexture;
     Sprite logo;
-    if (logoTexture.loadFromFile("images/logo.png")) {
+    if (logoTexture.loadFromFile("assets/images/logo.png")) {
         logo.setTexture(logoTexture);
         logo.setPosition(30, 120);
         logo.setScale(350.0f / logo.getLocalBounds().width, 90.0f / logo.getLocalBounds().height);
@@ -380,7 +380,7 @@ void showOptions(RenderWindow* window) {
     int count = 6;
 
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Font loading failed!" << endl;
         return;
     }
@@ -395,12 +395,12 @@ void showOptions(RenderWindow* window) {
     // Background & Logo
     Texture backgroundTexture;
     Sprite background;
-    if (backgroundTexture.loadFromFile("images/background.jpg"))
+    if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
         background.setTexture(backgroundTexture);
 
     Texture logoTexture;
     Sprite logo;
-    if (logoTexture.loadFromFile("images/logo.png")) {
+    if (logoTexture.loadFromFile("assets/images/logo.png")) {
         logo.setTexture(logoTexture);
         logo.setPosition(30, 120);
         logo.setScale(350.0f / logo.getLocalBounds().width, 90.0f / logo.getLocalBounds().height);
@@ -472,8 +472,14 @@ void showMenu(RenderWindow* window) {
     int selected = 0;  // index selected
 
     Font font;
+<<<<<<< HEAD:Menu.cpp
     if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
         cout << "Error: Failed to load font!" << endl;
+=======
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
+        cout << "Font loading failed in showMenu!" << endl;
+        cout.flush();
+>>>>>>> 2ab549d97827f373587b9012aa6867c3d3e02f94:src/Menu.cpp
         return;
     }
     
@@ -500,12 +506,12 @@ void showMenu(RenderWindow* window) {
 
     Texture backgroundTexture;
     Sprite background;
-    if (backgroundTexture.loadFromFile("images/background.jpg"))
+    if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
         background.setTexture(backgroundTexture);
 
     Texture logoTexture;
     Sprite logo;
-    if (logoTexture.loadFromFile("images/logo.png")) {
+    if (logoTexture.loadFromFile("assets/images/logo.png")) {
         logo.setTexture(logoTexture);
         logo.setPosition(30, 120);
         logo.setScale(350.0f / logo.getLocalBounds().width, 90.0f / logo.getLocalBounds().height);
@@ -633,7 +639,7 @@ void showPauseMenu(RenderWindow* window) {
     int selected = 0;
 
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Font loading failed!" << endl;
         return;
     }
@@ -662,12 +668,12 @@ void showPauseMenu(RenderWindow* window) {
 
     Texture backgroundTexture;
     Sprite background;
-    if (backgroundTexture.loadFromFile("images/background.jpg"))
+    if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
         background.setTexture(backgroundTexture);
 
     Texture logoTexture;
     Sprite logo;
-    if (logoTexture.loadFromFile("images/logo.png")) {
+    if (logoTexture.loadFromFile("assets/images/logo.png")) {
         logo.setTexture(logoTexture);
         logo.setPosition(30, 120);
         logo.setScale(350.0f / logo.getLocalBounds().width, 80.0f / logo.getLocalBounds().height);
@@ -735,7 +741,7 @@ void showEndMenu(RenderWindow* window, int score) {
 
     // Load font
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Font loading failed!" << endl;
         return;
     }
@@ -750,13 +756,13 @@ void showEndMenu(RenderWindow* window, int score) {
     // Load background
     Texture backgroundTexture;
     Sprite background;
-    if (backgroundTexture.loadFromFile("images/background.jpg"))
+    if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
         background.setTexture(backgroundTexture);
 
     // Load game over image
     Texture gameOverTexture;
     Sprite gameOver;
-    if (gameOverTexture.loadFromFile("images/gameover.png")) {
+    if (gameOverTexture.loadFromFile("assets/images/gameover.png")) {
         gameOver.setTexture(gameOverTexture);
         gameOver.setPosition(120, 50);
     }
@@ -864,7 +870,7 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
 
     // Load font
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Font loading failed!" << endl;
         return;
     }
@@ -879,13 +885,13 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
     // Load background
     Texture backgroundTexture;
     Sprite background;
-    if (backgroundTexture.loadFromFile("images/background.jpg"))
+    if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
         background.setTexture(backgroundTexture);
 
     // Load game over image
     Texture gameOverTexture;
     Sprite gameOver;
-    if (gameOverTexture.loadFromFile("images/gameover.png")) {
+    if (gameOverTexture.loadFromFile("assets/images/gameover.png")) {
         gameOver.setTexture(gameOverTexture);
         gameOver.setPosition(120, 50);
     }
@@ -988,13 +994,13 @@ void showFriendsMenu(sf::RenderWindow* window, FriendSystem* friendSystem, int p
     while (window->pollEvent(clearEvent)) { }
     
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Error loading font" << endl;
         return;
     }
     
     Texture bgTexture;
-    if (!bgTexture.loadFromFile("images/background.jpg")) {
+    if (!bgTexture.loadFromFile("assets/images/background.jpg")) {
         cout << "Error loading background" << endl;
         return;
     }
@@ -1266,13 +1272,13 @@ void showInventoryMenu(sf::RenderWindow* window, InventoryManager* inventoryMgr,
     while (window->pollEvent(clearEvent)) { }
     
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Error loading font" << endl;
         return;
     }
     
     Texture bgTexture;
-    if (!bgTexture.loadFromFile("images/background.jpg")) {
+    if (!bgTexture.loadFromFile("assets/images/background.jpg")) {
         cout << "Error loading background" << endl;
         return;
     }
@@ -1414,13 +1420,13 @@ bool selectFriendForMultiplayer(sf::RenderWindow* window, FriendSystem* friendSy
     while (window->pollEvent(clearEvent)) { }
     
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Error loading font" << endl;
         return false;
     }
     
     Texture bgTexture;
-    if (!bgTexture.loadFromFile("images/background.jpg")) {
+    if (!bgTexture.loadFromFile("assets/images/background.jpg")) {
         cout << "Error loading background" << endl;
         return false;
     }

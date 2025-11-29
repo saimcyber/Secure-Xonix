@@ -30,10 +30,11 @@ extern const int N;
 
 // Constructor
 SaveGame::SaveGame() {
-    savesDirectory = "saves/";
+    savesDirectory = "data/saves/";
     nextSaveID = 1;
     
     // Create saves directory if it doesn't exist
+    MKDIR("data");
     MKDIR(savesDirectory.c_str());
     
     loadSaveIDCounter();

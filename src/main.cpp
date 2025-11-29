@@ -1,8 +1,8 @@
 /*
  * Project: Xonix Game - Data Structures Project
  * Course: Data Structures
- * Authors: [Student Name 1], [Student Name 2]
- * Roll Numbers: [Roll# 1], [Roll# 2]
+ * Authors: M. Amish, Saim Zaib
+ * Roll Numbers: 24i-2099, 24i-2023
  * Date: November 2025
  * Description: Main game logic including Enemy AI, scoring system,
  *              single player and multiplayer game modes, area capture mechanics
@@ -14,7 +14,6 @@
 #include <fstream>
 #include <iomanip> 
 #include <cstring>
-#include <algorithm>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include "Menu.h"
@@ -75,7 +74,7 @@ void updateTop5Scores(int score, float totalGameTime) {
     int count = 0;
 
     // Open file for reading
-    ifstream infile("scores.txt");
+    ifstream infile("data/scores.txt");
     if (infile.is_open()) {
         while (count < 5) {
             int s;
@@ -108,7 +107,7 @@ void updateTop5Scores(int score, float totalGameTime) {
     }
 
     // Write top 5 scores to file
-    ofstream outfile("scores.txt");
+    ofstream outfile("data/scores.txt");
     if (!outfile.is_open()) {
         cerr << "Error: Could not open scores.txt for writing" << endl;
         return;
@@ -129,7 +128,7 @@ void displayTopScores(RenderWindow* window, Font& font) {
     int count = 0;
 
     // Read scores from file
-    ifstream infile("scores.txt");
+    ifstream infile("data/scores.txt");
     if (infile.is_open()) {
         while (count < 5) {
             int s;
@@ -439,7 +438,7 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
     }
 
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Error: Failed to load Fonts/AlexandriaFLF.ttf" << endl;
         window->close();
         return;
@@ -507,17 +506,17 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
     levelText.setPosition(20, 50);
 
     Texture t1, t2, t3;
-    if (!t1.loadFromFile("images/tiles.png")) {
+    if (!t1.loadFromFile("assets/images/tiles.png")) {
         cout << "Error: Failed to load images/tiles.png" << endl;
         window->close();
         return;
     }
-    if (!t2.loadFromFile("images/gameover.png")) {
+    if (!t2.loadFromFile("assets/images/gameover.png")) {
         cout << "Error: Failed to load images/gameover.png" << endl;
         window->close();
         return;
     }
-    if (!t3.loadFromFile("images/enemy.png")) {
+    if (!t3.loadFromFile("assets/images/enemy.png")) {
         cout << "Error: Failed to load images/enemy.png" << endl;
         window->close();
         return;
@@ -590,7 +589,7 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
         if (difficulty == 4) { //continous
             float elapsed = gameClock.getElapsedTime().asSeconds() - totalPausedTime;
             int newEnemyCount = 2 + static_cast<int>(elapsed / 20) * 2;
-            enemyCount = std::min(100, newEnemyCount); // Limit to array size 100
+            enemyCount = (newEnemyCount < 100) ? newEnemyCount : 100; // Limit to array size 100
         }
 
         float elapsed = gameClock.getElapsedTime().asSeconds() - totalPausedTime;
@@ -865,7 +864,7 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
 
     // Load font for UI text
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Error: Failed to load Fonts/AlexandriaFLF.ttf" << endl;
         window->close();
         return;
@@ -943,17 +942,17 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
 
     // Load textures for tiles, game over screen, and enemies
     Texture t1, t2, t3;
-    if (!t1.loadFromFile("images/tiles.png")) {
+    if (!t1.loadFromFile("assets/images/tiles.png")) {
         cout << "Error: Failed to load images/tiles.png" << endl;
         window->close();
         return;
     }
-    if (!t2.loadFromFile("images/gameover.png")) {
+    if (!t2.loadFromFile("assets/images/gameover.png")) {
         cout << "Error: Failed to load images/gameover.png" << endl;
         window->close();
         return;
     }
-    if (!t3.loadFromFile("images/enemy.png")) {
+    if (!t3.loadFromFile("assets/images/enemy.png")) {
         cout << "Error: Failed to load images/enemy.png" << endl;
         window->close();
         return;
@@ -1543,8 +1542,17 @@ int main() {
     
     // Load main font
     Font font;
+<<<<<<< HEAD:main.cpp
     if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
         cout << "Error: Failed to load font!" << endl;
+=======
+    cout << "Loading font..." << endl;
+    cout.flush();
+    
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
+        cout << "Font loading failed!" << endl;
+        cout.flush();
+>>>>>>> 2ab549d97827f373587b9012aa6867c3d3e02f94:src/main.cpp
         return -1;
     }
 
