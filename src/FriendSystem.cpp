@@ -394,7 +394,7 @@ bool FriendSystem::areFriends(int player1ID, int player2ID) {
 
 // Load friend data from file
 void FriendSystem::loadFriendData() {
-    ifstream file("friends.txt");
+    ifstream file("data/friends.txt");
     if (!file.is_open()) {
         cout << "No existing friends data. Starting fresh." << endl;
         return;
@@ -491,7 +491,7 @@ void FriendSystem::loadFriendData() {
 
 // Save friend data to file
 void FriendSystem::saveFriendData() {
-    ofstream file("friends.txt");
+    ofstream file("data/friends.txt");
     if (!file.is_open()) {
         cout << "Error: Could not save friend data!" << endl;
         return;

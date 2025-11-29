@@ -17,7 +17,7 @@ using namespace sf;
 // Constructor
 MinHeapLeaderboard::MinHeapLeaderboard() {
     size = 0;
-    leaderboardFile = "leaderboard.txt";
+    leaderboardFile = "data/leaderboard.txt";
     loadLeaderboard();
 }
 

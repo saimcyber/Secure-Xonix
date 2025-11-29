@@ -203,39 +203,39 @@ void ThemeInventory::initializeDefaultThemes() {
     
     // Theme 2: Ocean
     insertTheme(Theme(2, "Ocean", "Deep blue waters", 
-                     sf::Color(0, 105, 148), sf::Color(173, 216, 230), "ocean_bg.jpg", 5, false));
+                     sf::Color(0, 105, 148), sf::Color(173, 216, 230), "assets/images/ocean_bg.jpg", 5, false));
     
     // Theme 3: Forest
     insertTheme(Theme(3, "Forest", "Green nature theme", 
-                     sf::Color(34, 139, 34), sf::Color(144, 238, 144), "forest_bg.jpg", 10, false));
+                     sf::Color(34, 139, 34), sf::Color(144, 238, 144), "assets/images/forest_bg.jpg", 10, false));
     
     // Theme 4: Sunset
     insertTheme(Theme(4, "Sunset", "Warm orange and pink", 
-                     sf::Color(255, 140, 0), sf::Color(255, 182, 193), "sunset_bg.jpg", 15, false));
+                     sf::Color(255, 140, 0), sf::Color(255, 182, 193), "assets/images/sunset_bg.jpg", 15, false));
     
     // Theme 5: Night
     insertTheme(Theme(5, "Night", "Dark purple sky", 
-                     sf::Color(25, 25, 112), sf::Color(138, 43, 226), "night_bg.jpg", 20, false));
+                     sf::Color(25, 25, 112), sf::Color(138, 43, 226), "assets/images/night_bg.jpg", 20, false));
     
     // Theme 6: Fire
     insertTheme(Theme(6, "Fire", "Red hot flames", 
-                     sf::Color(220, 20, 60), sf::Color(255, 69, 0), "fire_bg.jpg", 25, true));
+                     sf::Color(220, 20, 60), sf::Color(255, 69, 0), "assets/images/fire_bg.jpg", 25, true));
     
     // Theme 7: Ice
     insertTheme(Theme(7, "Ice", "Cool cyan winter", 
-                     sf::Color(0, 191, 255), sf::Color(224, 255, 255), "ice_bg.jpg", 30, true));
+                     sf::Color(0, 191, 255), sf::Color(224, 255, 255), "assets/images/ice_bg.jpeg", 30, true));
     
     // Theme 8: Desert
     insertTheme(Theme(8, "Desert", "Sandy golden dunes", 
-                     sf::Color(210, 180, 140), sf::Color(255, 215, 0), "desert_bg.jpg", 35, true));
+                     sf::Color(210, 180, 140), sf::Color(255, 215, 0), "assets/images/desert_bg.jpg", 35, true));
     
     // Theme 9: Space
     insertTheme(Theme(9, "Space", "Cosmic black and stars", 
-                     sf::Color(0, 0, 0), sf::Color(255, 255, 255), "space_bg.jpg", 40, true));
+                     sf::Color(0, 0, 0), sf::Color(255, 255, 255), "assets/images/space_bg.jpg", 40, true));
     
     // Theme 10: Rainbow
     insertTheme(Theme(10, "Rainbow", "Bright colorful spectrum", 
-                     sf::Color(255, 0, 255), sf::Color(255, 255, 0), "rainbow_bg.jpg", 50, true));
+                     sf::Color(255, 0, 255), sf::Color(255, 255, 0), "assets/images/rainbow_bg.jpg", 50, true));
 }
 
 // ===== InventoryManager Implementation =====
@@ -417,7 +417,7 @@ PlayerInventory* InventoryManager::getPlayerInventory(int playerID) {
 }
 
 void InventoryManager::loadInventoryData() {
-    ifstream file("inventory.txt");
+    ifstream file("data/inventory.txt");
     if (!file.is_open()) {
         cout << "No existing inventory data. Starting fresh." << endl;
         return;
@@ -449,7 +449,7 @@ void InventoryManager::loadInventoryData() {
 }
 
 void InventoryManager::saveInventoryData() {
-    ofstream file("inventory.txt");
+    ofstream file("data/inventory.txt");
     if (!file.is_open()) {
         cout << "Error: Could not save inventory data!" << endl;
         return;

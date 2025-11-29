@@ -21,7 +21,7 @@ using namespace sf;
 Authentication::Authentication() {
     playerCount = 0;
     currentPlayerID = -1;
-    accountsFile = "accounts.txt";
+    accountsFile = "data/accounts.txt";
     loadAccounts();
 }
 
@@ -199,7 +199,7 @@ string Authentication::getCurrentUsername(int playerID) {
 // Show login screen
 bool Authentication::showLoginScreen(RenderWindow* window) {
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Font loading failed!" << endl;
         return false;
     }
@@ -207,7 +207,7 @@ bool Authentication::showLoginScreen(RenderWindow* window) {
     // Load background
     Texture backgroundTexture;
     Sprite background;
-    if (backgroundTexture.loadFromFile("images/background.jpg"))
+    if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
         background.setTexture(backgroundTexture);
 
     // Title
@@ -316,13 +316,13 @@ bool Authentication::showLoginScreen(RenderWindow* window) {
 // Show registration screen
 bool Authentication::showRegistrationScreen(RenderWindow* window) {
     Font font;
-    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         return false;
     }
 
     Texture backgroundTexture;
     Sprite background;
-    if (backgroundTexture.loadFromFile("images/background.jpg"))
+    if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
         background.setTexture(backgroundTexture);
 
     Text title("REGISTER NEW PLAYER", font, 35);

@@ -29,7 +29,7 @@ PlayerProfile::PlayerProfile() {
     xpToNextLevel = 100;
     friendsHead = nullptr;
     matchCount = 0;
-    profileFile = "profile_0.txt";
+    profileFile = "data/profile_0.txt";
 }
 
 // Parameterized constructor
@@ -44,7 +44,7 @@ PlayerProfile::PlayerProfile(int id, string name) {
     xpToNextLevel = 100;
     friendsHead = nullptr;
     matchCount = 0;
-    profileFile = "profile_" + to_string(id) + ".txt";
+    profileFile = "data/profile_" + to_string(id) + ".txt";
     loadProfile();
 }
 
