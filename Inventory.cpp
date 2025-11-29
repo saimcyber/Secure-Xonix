@@ -78,6 +78,11 @@ ThemeNode* ThemeInventory::rotateRight(ThemeNode* y) {
     return x;  // New root
 }
 
+// ===== AVL TREE IMPLEMENTATION =====
+// AVL Tree is a self-balancing Binary Search Tree
+// After every insertion, the tree is rebalanced using rotations
+// This ensures O(log n) search/insert time complexity
+
 // Balance a node after insertion
 ThemeNode* ThemeInventory::balanceNode(ThemeNode* node) {
     if (node == nullptr) return node;
@@ -85,26 +90,27 @@ ThemeNode* ThemeInventory::balanceNode(ThemeNode* node) {
     // Update height
     node->height = 1 + max(getHeight(node->left), getHeight(node->right));
     
-    // Get balance factor
+    // Get balance factor (left_height - right_height)
+    // If > 1, left-heavy; if < -1, right-heavy
     int balance = getBalanceFactor(node);
     
-    // Left-Left case
+    // Left-Left case: Single right rotation
     if (balance > 1 && getBalanceFactor(node->left) >= 0) {
         return rotateRight(node);
     }
     
-    // Left-Right case
+    // Left-Right case: Left rotation then right rotation
     if (balance > 1 && getBalanceFactor(node->left) < 0) {
         node->left = rotateLeft(node->left);
         return rotateRight(node);
     }
     
-    // Right-Right case
+    // Right-Right case: Single left rotation
     if (balance < -1 && getBalanceFactor(node->right) <= 0) {
         return rotateLeft(node);
     }
     
-    // Right-Left case
+    // Right-Left case: Right rotation then left rotation
     if (balance < -1 && getBalanceFactor(node->right) > 0) {
         node->right = rotateRight(node->right);
         return rotateLeft(node);

@@ -111,45 +111,26 @@ int FriendSystem::findPlayerIndexByUsername(const string& username) {
 
 // Add player to the system
 void FriendSystem::addPlayer(int playerID, const string& username) {
-    cout << "addPlayer called for ID=" << playerID << " username=" << username << endl;
-    cout.flush();
-    
     int index = findPlayerIndex(playerID);
-    cout << "findPlayerIndex returned: " << index << endl;
-    cout.flush();
     
     if (index != -1) {
-        cout << "Player already exists, returning" << endl;
-        cout.flush();
-        return; // Already exists
+        return; // Player already exists
     }
     
     if (playerCount >= 100) {
-        cout << "Maximum players reached!" << endl;
+        cout << "Error: Maximum players reached!" << endl;
         return;
     }
-    
-    cout << "Adding player at index " << playerCount << endl;
-    cout.flush();
     
     players[playerCount].playerID = playerID;
     players[playerCount].username = username;
     players[playerCount].friendsHead = nullptr;
     players[playerCount].pendingHead = nullptr;
     
-    cout << "Inserting into hash table..." << endl;
-    cout.flush();
-    
     // Insert into hash table for fast lookup
     insertIntoHashTable(username, playerCount);
     
-    cout << "Hash table insert complete" << endl;
-    cout.flush();
-    
     playerCount++;
-    
-    cout << "Player added successfully, new count: " << playerCount << endl;
-    cout.flush();
 }
 
 // Send friend request

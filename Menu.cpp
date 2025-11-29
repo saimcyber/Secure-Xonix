@@ -471,18 +471,11 @@ void showOptions(RenderWindow* window) {
 void showMenu(RenderWindow* window) {
     int selected = 0;  // index selected
 
-    cout << "Entering main menu..." << endl;
-    cout.flush();
-    
     Font font;
     if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
-        cout << "Font loading failed in showMenu!" << endl;
-        cout.flush();
+        cout << "Error: Failed to load font!" << endl;
         return;
     }
-    
-    cout << "Font loaded in menu!" << endl;
-    cout.flush();
     
     // Clear any pending events to prevent auto-triggering
     Event clearEvent;

@@ -1523,59 +1523,32 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
 
 int main() {
 
-    cout << "Starting Xonix Game..." << endl;
-    cout.flush();
-    
+    // Load background music (optional)
     if (!loadMenuSound()) {
-        cout << "Warning: Sound failed to load, continuing anyway..." << endl;
-        cout.flush();
-        // Don't exit - continue without sound
+        // Game continues without sound
     }
 
     srand(time(0));
 
-    cout << "Creating window..." << endl;
-    cout.flush();
-    
+    // Create game window
     RenderWindow window(VideoMode(N * ts, M * ts), "Xonix");
     window.setFramerateLimit(60);
     
-    cout << "Window created successfully!" << endl;
-    cout.flush();
-    
     // Initialize global systems
-    cout << "Initializing Friend System..." << endl;
-    cout.flush();
     g_friendSystem = new FriendSystem();
-    
-    cout << "Initializing Inventory Manager..." << endl;
-    cout.flush();
     g_inventoryMgr = new InventoryManager();
-    
-    cout << "Systems initialized successfully!" << endl;
-    cout.flush();
 
-    // Authentication system
+    // Initialize authentication
     Authentication auth;
     
-    cout << "Authentication system initialized" << endl;
-    cout.flush();
-    
-    // Show login or registration screen
+    // Load main font
     Font font;
-    cout << "Loading font..." << endl;
-    cout.flush();
-    
     if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
-        cout << "Font loading failed!" << endl;
-        cout.flush();
+        cout << "Error: Failed to load font!" << endl;
         return -1;
     }
-    
-    cout << "Font loaded successfully!" << endl;
-    cout.flush();
 
-    // Simple login/register menu
+    // Authentication loop
     bool authenticated = false;
     while (window.isOpen() && !authenticated) {
         window.clear(Color::Black);
@@ -1649,38 +1622,19 @@ int main() {
         return 0;
     }
 
-    // Get authenticated player info
-    cout << "Getting player info..." << endl;
-    cout.flush();
-    
+    // Get authenticated player information
     g_currentPlayerID = auth.getCurrentPlayerID();
     g_currentUsername = auth.getCurrentUsername(g_currentPlayerID);
-    
-    cout << "Logged in as: " << g_currentUsername << " (ID: " << g_currentPlayerID << ")" << endl;
-    cout.flush();
 
-    // Add player to friend system
-    cout << "Adding player to friend system..." << endl;
-    cout.flush();
-    
+    // Register player with friend system
     g_friendSystem->addPlayer(g_currentPlayerID, g_currentUsername);
     
-    cout << "Player added successfully!" << endl;
-    cout.flush();
-
-    cout << "Checking window status: " << (window.isOpen() ? "OPEN" : "CLOSED") << endl;
-    cout.flush();
-    
+    // Show main menu
     if (window.isOpen()) {
-        cout << "Calling showMenu..." << endl;
-        cout.flush();
         showMenu(&window);
-    } else {
-        cout << "Window was closed during authentication!" << endl;
-        cout.flush();
     }
 
-    // Cleanup
+    // Cleanup global systems
     delete g_friendSystem;
     delete g_inventoryMgr;
 
