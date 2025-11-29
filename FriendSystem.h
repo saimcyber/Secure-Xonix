@@ -1,8 +1,8 @@
 /*
  * Project: Xonix Game - Data Structures Project
  * Course: Data Structures
- * Authors: [Student Name 1], [Student Name 2]
- * Roll Numbers: [Roll# 1], [Roll# 2]
+ * Authors: M. Amish, Saim Zaib
+ * Roll Numbers: 24i-2099, 24i-2023
  * Date: November 2025
  * Description: Friend request system using Array + Linked List
  *              Simplified version with linear search instead of hash table
@@ -11,6 +11,9 @@
 #pragma once
 
 #include <string>
+
+// Forward declaration
+namespace sf { class RenderWindow; }
 
 // Friend request status
 enum RequestStatus {
@@ -45,6 +48,10 @@ struct PlayerWithFriends {
 
 // Friend System Manager
 class FriendSystem {
+public:
+    // Make FriendNode accessible for Menu
+    using FriendNode = FriendRequest;
+    
 private:
     static const int HASH_TABLE_SIZE = 101;  // Prime number for better distribution
     
@@ -58,7 +65,6 @@ private:
     int searchHashTable(const std::string& username);
     
     // Helper functions
-    int findPlayerIndex(int playerID);
     int findPlayerIndexByUsername(const std::string& username);
     void loadFriendData();
     void saveFriendData();
@@ -66,6 +72,9 @@ private:
 public:
     FriendSystem();
     ~FriendSystem();
+    
+    // Public accessor for friend list traversal
+    int findPlayerIndex(int playerID);
     
     // Main operations
     void addPlayer(int playerID, const std::string& username);
@@ -79,4 +88,12 @@ public:
     void viewPendingRequests(int playerID);
     int getFriendCount(int playerID);
     bool areFriends(int player1ID, int player2ID);
+    
+    // Public accessors for GUI operations
+    FriendRequest* getPendingRequestsHead(int playerID);
+    int getPendingRequestsCount(int playerID);
+    
+    // Allow Menu to access players array
+    friend bool selectFriendForMultiplayer(sf::RenderWindow*, FriendSystem*, int, int&, std::string&);
+    friend void showFriendsMenu(sf::RenderWindow*, FriendSystem*, int);
 };

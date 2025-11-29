@@ -1,8 +1,8 @@
 /*
  * Project: Xonix Game - Data Structures Project
  * Course: Data Structures
- * Authors: [Student Name 1], [Student Name 2]
- * Roll Numbers: [Roll# 1], [Roll# 2]
+ * Authors: M. Amish, Saim Zaib
+ * Roll Numbers: 24i-2099, 24i-2023
  * Date: November 2025
  * Description: Min-Heap leaderboard implementation
  */
@@ -78,10 +78,10 @@ LeaderboardEntry MinHeapLeaderboard::getMin() {
 
 // Insert or update player score
 void MinHeapLeaderboard::insertOrUpdate(int playerID, const string& username, int points) {
-    // First, check if player already exists in heap
+    // First, check if player already exists in heap (by ID or username to prevent duplicates)
     int existingIndex = -1;
     for (int i = 0; i < size; i++) {
-        if (heap[i].playerID == playerID) {
+        if (heap[i].playerID == playerID || heap[i].username == username) {
             existingIndex = i;
             break;
         }
@@ -91,6 +91,8 @@ void MinHeapLeaderboard::insertOrUpdate(int playerID, const string& username, in
     if (existingIndex != -1) {
         int oldPoints = heap[existingIndex].totalPoints;
         heap[existingIndex].totalPoints = points;
+        heap[existingIndex].playerID = playerID;  // Update ID in case it changed
+        heap[existingIndex].username = username;  // Update username in case it changed
         
         // Restore heap property
         if (points < oldPoints) {

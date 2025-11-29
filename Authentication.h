@@ -1,8 +1,8 @@
 /*
  * Project: Xonix Game - Data Structures Project
  * Course: Data Structures
- * Authors: [Student Name 1], [Student Name 2]
- * Roll Numbers: [Roll# 1], [Roll# 2]
+ * Authors: M. Amish, Saim Zaib
+ * Roll Numbers: 24i-2099, 24i-2023
  * Date: November 2025
  * Description: Authentication system header - handles player login and registration
  */

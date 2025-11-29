@@ -1,8 +1,8 @@
 /*
  * Project: Xonix Game - Data Structures Project
  * Course: Data Structures
- * Authors: [Student Name 1], [Student Name 2]
- * Roll Numbers: [Roll# 1], [Roll# 2]
+ * Authors: M. Amish, Saim Zaib
+ * Roll Numbers: 24i-2099, 24i-2023
  * Date: November 2025
  * Description: Authentication system implementation
  */
@@ -94,11 +94,11 @@ void Authentication::loadAccounts() {
     cout << "Loaded " << playerCount << " player accounts." << endl;
     
     // Sync loaded players with Friend System and Inventory Manager
-    extern FriendSystem g_friendSystem;
-    extern InventoryManager g_inventoryMgr;
+    extern FriendSystem* g_friendSystem;
+    extern InventoryManager* g_inventoryMgr;
     for (int i = 0; i < playerCount; i++) {
-        g_friendSystem.addPlayer(players[i].playerID, players[i].username);
-        g_inventoryMgr.addPlayer(players[i].playerID);
+        g_friendSystem->addPlayer(players[i].playerID, players[i].username);
+        g_inventoryMgr->addPlayer(players[i].playerID);
     }
 }
 
@@ -153,10 +153,10 @@ bool Authentication::registerPlayer(const string& username, const string& passwo
     saveAccounts();
     
     // Add player to Friend System and Inventory Manager
-    extern FriendSystem g_friendSystem;
-    extern InventoryManager g_inventoryMgr;
-    g_friendSystem.addPlayer(newPlayerID, username);
-    g_inventoryMgr.addPlayer(newPlayerID);
+    extern FriendSystem* g_friendSystem;
+    extern InventoryManager* g_inventoryMgr;
+    g_friendSystem->addPlayer(newPlayerID, username);
+    g_inventoryMgr->addPlayer(newPlayerID);
     
     cout << "Registration successful! Welcome, " << username << "!" << endl;
     return true;
@@ -259,6 +259,11 @@ bool Authentication::showLoginScreen(RenderWindow* window) {
                 }
                 if (event.key.code == Keyboard::Return) {
                     if (login(username, password)) {
+                        // Clear all pending events before returning
+                        Event clearEvent;
+                        while (window->pollEvent(clearEvent)) { }
+                        cout << "Login successful, returning to main..." << endl;
+                        cout.flush();
                         return true;
                     } else {
                         errorMsg.setString("Login failed! Check credentials.");

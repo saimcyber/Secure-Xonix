@@ -1,8 +1,8 @@
 /*
  * Project: Xonix Game - Data Structures Project
  * Course: Data Structures
- * Authors: [Student Name 1], [Student Name 2]
- * Roll Numbers: [Roll# 1], [Roll# 2]
+ * Authors: M. Amish, Saim Zaib
+ * Roll Numbers: 24i-2099, 24i-2023
  * Date: November 2025
  * Description: Binary Search Tree implementation for theme inventory
  */
@@ -215,7 +215,7 @@ void ThemeInventory::initializeDefaultThemes() {
     
     // Theme 5: Night
     insertTheme(Theme(5, "Night", "Dark purple sky", 
-                     sf::Color(25, 25, 112), sf::Color(138, 43, 226), "night_bg.jpeg", 20, false));
+                     sf::Color(25, 25, 112), sf::Color(138, 43, 226), "night_bg.jpg", 20, false));
     
     // Theme 6: Fire
     insertTheme(Theme(6, "Fire", "Red hot flames", 
@@ -223,7 +223,7 @@ void ThemeInventory::initializeDefaultThemes() {
     
     // Theme 7: Ice
     insertTheme(Theme(7, "Ice", "Cool cyan winter", 
-                     sf::Color(0, 191, 255), sf::Color(224, 255, 255), "ice_bg.jpeg", 30, true));
+                     sf::Color(0, 191, 255), sf::Color(224, 255, 255), "ice_bg.jpg", 30, true));
     
     // Theme 8: Desert
     insertTheme(Theme(8, "Desert", "Sandy golden dunes", 

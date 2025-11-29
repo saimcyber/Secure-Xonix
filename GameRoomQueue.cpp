@@ -1,8 +1,8 @@
 /*
  * Project: Xonix Game - Data Structures Project
  * Course: Data Structures
- * Authors: [Student Name 1], [Student Name 2]
- * Roll Numbers: [Roll# 1], [Roll# 2]
+ * Authors: M. Amish, Saim Zaib
+ * Roll Numbers: 24i-2099, 24i-2023
  * Date: November 2025
  * Description: Game Room Queue implementation
  */
@@ -13,56 +13,68 @@
 using namespace std;
 
 // Constructor
-GameRoomQueue::GameRoomQueue() {
+GameRoomQueue::GameRoomQueue()
+{
     front = nullptr;
     rear = nullptr;
     size = 0;
 }
 
 // Destructor - clean up all nodes
-GameRoomQueue::~GameRoomQueue() {
-    while (!isEmpty()) {
-        GameRoomNode* temp = dequeue();
+GameRoomQueue::~GameRoomQueue()
+{
+    while (!isEmpty())
+    {
+        GameRoomNode *temp = dequeue();
         delete temp;
     }
 }
 
 // Enqueue a player at the rear
-void GameRoomQueue::enqueue(int playerID, const string& username, int totalPoints) {
-    GameRoomNode* newNode = new GameRoomNode(playerID, username, totalPoints);
-    
-    if (isEmpty()) {
+void GameRoomQueue::enqueue(int playerID, const string &username, int totalPoints)
+{
+    GameRoomNode *newNode = new GameRoomNode(playerID, username, totalPoints);
+
+    if (isEmpty())
+    {
         front = rear = newNode;
-    } else {
+    }
+    else
+    {
         rear->next = newNode;
         rear = newNode;
     }
-    
+
     size++;
     cout << "Player " << username << " joined game room queue (Position: " << size << ")" << endl;
 }
 
 // Dequeue player from front
-GameRoomNode* GameRoomQueue::dequeue() {
-    if (isEmpty()) {
+GameRoomNode *GameRoomQueue::dequeue()
+{
+    if (isEmpty())
+    {
         cout << "Game room queue is empty!" << endl;
         return nullptr;
     }
-    
-    GameRoomNode* temp = front;
+
+    GameRoomNode *temp = front;
     front = front->next;
-    
-    if (front == nullptr) {
-        rear = nullptr;  // Queue is now empty
+
+    if (front == nullptr)
+    {
+        rear = nullptr; // Queue is now empty
     }
-    
+
     size--;
     return temp;
 }
 
 // Peek at front player
-GameRoomNode* GameRoomQueue::peek() {
-    if (isEmpty()) {
+GameRoomNode *GameRoomQueue::peek()
+{
+    if (isEmpty())
+    {
         cout << "Game room queue is empty!" << endl;
         return nullptr;
     }
@@ -70,18 +82,21 @@ GameRoomNode* GameRoomQueue::peek() {
 }
 
 // Display all players in queue
-void GameRoomQueue::displayQueue() {
-    if (isEmpty()) {
+void GameRoomQueue::displayQueue()
+{
+    if (isEmpty())
+    {
         cout << "No players in game room queue." << endl;
         return;
     }
-    
+
     cout << "=== Game Room Queue ===" << endl;
-    GameRoomNode* current = front;
+    GameRoomNode *current = front;
     int position = 1;
-    
-    while (current != nullptr) {
-        cout << position << ". " << current->username 
+
+    while (current != nullptr)
+    {
+        cout << position << ". " << current->username
              << " (Points: " << current->totalPoints << ")" << endl;
         current = current->next;
         position++;

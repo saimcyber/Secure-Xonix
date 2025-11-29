@@ -1,8 +1,8 @@
 /*
  * Project: Xonix Game - Data Structures Project
  * Course: Data Structures
- * Authors: [Student Name 1], [Student Name 2]
- * Roll Numbers: [Roll# 1], [Roll# 2]
+ * Authors: M. Amish, Saim Zaib
+ * Roll Numbers: 24i-2099, 24i-2023
  * Date: November 2025
  * Description: Friend system implementation
  */
@@ -111,23 +111,45 @@ int FriendSystem::findPlayerIndexByUsername(const string& username) {
 
 // Add player to the system
 void FriendSystem::addPlayer(int playerID, const string& username) {
+    cout << "addPlayer called for ID=" << playerID << " username=" << username << endl;
+    cout.flush();
+    
     int index = findPlayerIndex(playerID);
-    if (index != -1) return; // Already exists
+    cout << "findPlayerIndex returned: " << index << endl;
+    cout.flush();
+    
+    if (index != -1) {
+        cout << "Player already exists, returning" << endl;
+        cout.flush();
+        return; // Already exists
+    }
     
     if (playerCount >= 100) {
         cout << "Maximum players reached!" << endl;
         return;
     }
     
+    cout << "Adding player at index " << playerCount << endl;
+    cout.flush();
+    
     players[playerCount].playerID = playerID;
     players[playerCount].username = username;
     players[playerCount].friendsHead = nullptr;
     players[playerCount].pendingHead = nullptr;
     
+    cout << "Inserting into hash table..." << endl;
+    cout.flush();
+    
     // Insert into hash table for fast lookup
     insertIntoHashTable(username, playerCount);
     
+    cout << "Hash table insert complete" << endl;
+    cout.flush();
+    
     playerCount++;
+    
+    cout << "Player added successfully, new count: " << playerCount << endl;
+    cout.flush();
 }
 
 // Send friend request
@@ -381,12 +403,24 @@ void FriendSystem::loadFriendData() {
     int savedPlayerCount;
     file >> savedPlayerCount;
     
+    // Check if file read was successful
+    if (file.fail() || savedPlayerCount < 0 || savedPlayerCount > 100) {
+        cout << "Invalid or empty friends data file. Starting fresh." << endl;
+        file.close();
+        return;
+    }
+    
     for (int i = 0; i < savedPlayerCount && i < 100; i++) {
         int pID;
         string uname;
         file >> pID;
+        
+        if (file.fail()) break;  // Stop if read fails
+        
         file.ignore();
         getline(file, uname);
+        
+        if (file.fail()) break;  // Stop if read fails
         
         // Add player if not already exists
         if (findPlayerIndex(pID) == -1) {
@@ -400,14 +434,21 @@ void FriendSystem::loadFriendData() {
         int friendCount;
         file >> friendCount;
         
+        if (file.fail() || friendCount < 0) break;  // Stop if read fails
+        
         // Load each friend
         for (int j = 0; j < friendCount; j++) {
             int fromID, toID;
             string fromName, toName;
             file >> fromID >> toID;
+            
+            if (file.fail()) break;
+            
             file.ignore();
             getline(file, fromName, ',');
             getline(file, toName);
+            
+            if (file.fail()) break;
             
             // Create friend entry
             FriendRequest* newFriend = new FriendRequest(fromID, fromName, toID, toName);
@@ -420,14 +461,21 @@ void FriendSystem::loadFriendData() {
         int pendingCount;
         file >> pendingCount;
         
+        if (file.fail() || pendingCount < 0) break;  // Stop if read fails
+        
         // Load each pending request
         for (int j = 0; j < pendingCount; j++) {
             int fromID, toID;
             string fromName, toName;
             file >> fromID >> toID;
+            
+            if (file.fail()) break;
+            
             file.ignore();
             getline(file, fromName, ',');
             getline(file, toName);
+            
+            if (file.fail()) break;
             
             // Create pending request
             FriendRequest* newRequest = new FriendRequest(fromID, fromName, toID, toName);
@@ -497,4 +545,25 @@ void FriendSystem::saveFriendData() {
     
     file.close();
     cout << "Friend data saved successfully." << endl;
+}
+
+// Get pending requests head for a player
+FriendRequest* FriendSystem::getPendingRequestsHead(int playerID) {
+    int index = findPlayerIndex(playerID);
+    if (index == -1) return nullptr;
+    return players[index].pendingHead;
+}
+
+// Get count of pending requests for a player
+int FriendSystem::getPendingRequestsCount(int playerID) {
+    int index = findPlayerIndex(playerID);
+    if (index == -1) return 0;
+    
+    int count = 0;
+    FriendRequest* current = players[index].pendingHead;
+    while (current) {
+        count++;
+        current = current->next;
+    }
+    return count;
 }

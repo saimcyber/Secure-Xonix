@@ -1,8 +1,8 @@
 /*
  * Project: Xonix Game - Data Structures Project
  * Course: Data Structures
- * Authors: [Student Name 1], [Student Name 2]
- * Roll Numbers: [Roll# 1], [Roll# 2]
+ * Authors: M. Amish, Saim Zaib
+ * Roll Numbers: 24i-2099, 24i-2023
  * Date: November 2025
  * Description: Complete menu system including main menu, options, pause menu,
  *              end game menu, scoreboard display, and all UI navigation
@@ -207,7 +207,7 @@ int showSubmenu(RenderWindow* window, const string options[], int count) {
     }
     
     // Get equipped theme colors - will be refreshed in loop
-    extern InventoryManager g_inventoryMgr;
+    extern InventoryManager* g_inventoryMgr;
     extern int g_currentPlayerID;
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
@@ -245,7 +245,7 @@ int showSubmenu(RenderWindow* window, const string options[], int count) {
     // Menu loop
     while (window->isOpen()) {
         // Refresh theme colors every frame
-        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
         themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
         themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
         
@@ -386,7 +386,7 @@ void showOptions(RenderWindow* window) {
     }
     
     // Get equipped theme colors - will be refreshed in loop
-    extern InventoryManager g_inventoryMgr;
+    extern InventoryManager* g_inventoryMgr;
     extern int g_currentPlayerID;
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
@@ -421,7 +421,7 @@ void showOptions(RenderWindow* window) {
 
     while (window->isOpen()) {
         // Refresh theme colors every frame
-        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
         themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
         themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
         
@@ -471,11 +471,18 @@ void showOptions(RenderWindow* window) {
 void showMenu(RenderWindow* window) {
     int selected = 0;  // index selected
 
+    cout << "Entering main menu..." << endl;
+    cout.flush();
+    
     Font font;
     if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
-        cout << "Font loading failed!" << endl;
+        cout << "Font loading failed in showMenu!" << endl;
+        cout.flush();
         return;
     }
+    
+    cout << "Font loaded in menu!" << endl;
+    cout.flush();
     
     // Clear any pending events to prevent auto-triggering
     Event clearEvent;
@@ -515,7 +522,7 @@ void showMenu(RenderWindow* window) {
     PlayerProfile currentProfile(g_currentPlayerID, g_currentUsername);
     
     // Get equipped theme colors - will be refreshed in the loop
-    extern InventoryManager g_inventoryMgr;
+    extern InventoryManager* g_inventoryMgr;
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
     Color themeSecondary = Color::Cyan;
@@ -529,7 +536,7 @@ void showMenu(RenderWindow* window) {
 
     while (window->isOpen()) {
         // Refresh theme colors every frame to reflect changes from inventory
-        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
         themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
         themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
         playerInfoText.setFillColor(themeSecondary); // Update player info color
@@ -548,22 +555,32 @@ void showMenu(RenderWindow* window) {
                         // Directly start game with current mode and difficulty
                         if (mode == 1) {
                             SingleGame(window, difficulty, g_currentPlayerID, g_currentUsername);
+                            // Reload profile after game ends to show updated stats
+                            currentProfile = PlayerProfile(g_currentPlayerID, g_currentUsername);
                         } else if (mode == 2) {
-                            MultiGame(window, difficulty, g_currentPlayerID, g_currentUsername, g_currentPlayerID, g_currentUsername);
+                            // Multiplayer - select second player from friends
+                            extern FriendSystem* g_friendSystem;
+                            int player2ID = 0;
+                            string player2Name = "";
+                            
+                            if (selectFriendForMultiplayer(window, g_friendSystem, g_currentPlayerID, player2ID, player2Name)) {
+                                MultiGame(window, difficulty, g_currentPlayerID, g_currentUsername, player2ID, player2Name);
+                                // Reload profile after game ends to show updated stats
+                                currentProfile = PlayerProfile(g_currentPlayerID, g_currentUsername);
+                            }
+                            // If selection cancelled, just return to menu
                         }
-                        // Reload profile after game ends to show updated stats
-                        currentProfile = PlayerProfile(g_currentPlayerID, g_currentUsername);
                     } else if (selected == 1) {
                         showOptions(window);
                     } else if (selected == 2) {
                         // Friends menu
-                        extern FriendSystem g_friendSystem;
-                        showFriendsMenu(window, &g_friendSystem, g_currentPlayerID);
+                        extern FriendSystem* g_friendSystem;
+                        showFriendsMenu(window, g_friendSystem, g_currentPlayerID);
                     } else if (selected == 3) {
                         // Inventory menu
-                        extern InventoryManager g_inventoryMgr;
+                        extern InventoryManager* g_inventoryMgr;
                         PlayerProfile tempProfile(g_currentPlayerID, g_currentUsername);
-                        showInventoryMenu(window, &g_inventoryMgr, g_currentPlayerID, tempProfile.getCurrentLevel());
+                        showInventoryMenu(window, g_inventoryMgr, g_currentPlayerID, tempProfile.getCurrentLevel());
                         // Reload profile after inventory (in case auto-unlocks affected level)
                         currentProfile = PlayerProfile(g_currentPlayerID, g_currentUsername);
                     } else if (selected == 4) {
@@ -629,7 +646,7 @@ void showPauseMenu(RenderWindow* window) {
     }
     
     // Get equipped theme colors - will be refreshed in loop
-    extern InventoryManager g_inventoryMgr;
+    extern InventoryManager* g_inventoryMgr;
     extern int g_currentPlayerID;
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
@@ -665,7 +682,7 @@ void showPauseMenu(RenderWindow* window) {
 
     while (window->isOpen()) {
         // Refresh theme colors every frame
-        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
         themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
         themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
         
@@ -731,9 +748,9 @@ void showEndMenu(RenderWindow* window, int score) {
     }
     
     // Get equipped theme colors
-    extern InventoryManager g_inventoryMgr;
+    extern InventoryManager* g_inventoryMgr;
     extern int g_currentPlayerID;
-    Theme* equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+    Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
 
@@ -800,7 +817,7 @@ void showEndMenu(RenderWindow* window, int score) {
 
     while (window->isOpen()) {
         // Refresh theme colors every frame
-        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
         themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
         themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
         scoreText.setFillColor(themeSecondary); // Update score color
@@ -860,9 +877,9 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
     }
     
     // Get equipped theme colors
-    extern InventoryManager g_inventoryMgr;
+    extern InventoryManager* g_inventoryMgr;
     extern int g_currentPlayerID;
-    Theme* equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+    Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
 
@@ -918,7 +935,7 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
 
     while (window->isOpen()) {
         // Refresh theme colors every frame
-        equippedTheme = g_inventoryMgr.getEquippedTheme(g_currentPlayerID);
+        equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
         themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
         themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
         scoreText.setFillColor(themeSecondary); // Update score color
@@ -1028,29 +1045,192 @@ void showFriendsMenu(sf::RenderWindow* window, FriendSystem* friendSystem, int p
                     selected = (selected + 1) % menuItems;
                 } else if (event.key.code == Keyboard::Return) {
                     if (selected == 0) {
-                        // View friends list
+                        // View friends list - console output only
                         friendSystem->viewFriendsList(playerID);
                     } else if (selected == 1) {
-                        // View pending requests
+                        // View pending requests - console output only
                         friendSystem->viewPendingRequests(playerID);
                     } else if (selected == 2) {
-                        // Send friend request
-                        cout << "Enter username to send request: ";
-                        string username;
-                        cin >> username;
-                        friendSystem->sendFriendRequest(playerID, username);
+                        // Send friend request - GUI text input
+                        string friendUsername = "";
+                        bool inputActive = true;
+                        
+                        while (inputActive && window->isOpen()) {
+                            Event inputEvent;
+                            while (window->pollEvent(inputEvent)) {
+                                if (inputEvent.type == Event::Closed) {
+                                    window->close();
+                                    return;
+                                }
+                                
+                                if (inputEvent.type == Event::TextEntered) {
+                                    if (inputEvent.text.unicode == '\b' && friendUsername.length() > 0) {
+                                        // Backspace
+                                        friendUsername.pop_back();
+                                    } else if (inputEvent.text.unicode == '\r' || inputEvent.text.unicode == '\n') {
+                                        // Enter - send request
+                                        if (!friendUsername.empty()) {
+                                            friendSystem->sendFriendRequest(playerID, friendUsername);
+                                        }
+                                        inputActive = false;
+                                    } else if (inputEvent.text.unicode == 27) {
+                                        // Escape - cancel
+                                        inputActive = false;
+                                    } else if (inputEvent.text.unicode < 128 && inputEvent.text.unicode >= 32) {
+                                        // Regular character
+                                        friendUsername += static_cast<char>(inputEvent.text.unicode);
+                                    }
+                                }
+                            }
+                            
+                            // Draw input screen
+                            window->clear();
+                            window->draw(background);
+                            
+                            Text inputTitle("Enter Friend's Username", font, 30);
+                            inputTitle.setPosition(200, 200);
+                            inputTitle.setFillColor(Color::Yellow);
+                            window->draw(inputTitle);
+                            
+                            RectangleShape inputBox(Vector2f(400, 50));
+                            inputBox.setPosition(200, 270);
+                            inputBox.setFillColor(Color(50, 50, 50));
+                            inputBox.setOutlineColor(Color::White);
+                            inputBox.setOutlineThickness(2);
+                            window->draw(inputBox);
+                            
+                            Text inputText(friendUsername, font, 24);
+                            inputText.setPosition(210, 280);
+                            inputText.setFillColor(Color::White);
+                            window->draw(inputText);
+                            
+                            Text instruction("Press ENTER to send or ESC to cancel", font, 18);
+                            instruction.setPosition(200, 350);
+                            instruction.setFillColor(Color(200, 200, 200));
+                            window->draw(instruction);
+                            
+                            window->display();
+                        }
                     } else if (selected == 3) {
-                        // Accept/Reject requests
-                        cout << "Enter player ID to accept/reject: ";
-                        int friendID;
-                        cin >> friendID;
-                        cout << "1. Accept  2. Reject: ";
-                        int choice;
-                        cin >> choice;
-                        if (choice == 1) {
-                            friendSystem->acceptFriendRequest(playerID, friendID);
-                        } else {
-                            friendSystem->rejectFriendRequest(playerID, friendID);
+                        // Accept/Reject requests - GUI version
+                        bool manageActive = true;
+                        int requestSelected = 0;
+                        
+                        while (manageActive && window->isOpen()) {
+                            // Get pending requests count
+                            int pendingCount = friendSystem->getPendingRequestsCount(playerID);
+                            
+                            if (pendingCount == 0) {
+                                // No pending requests
+                                window->clear();
+                                window->draw(background);
+                                
+                                Text noRequests("No pending requests!", font, 30);
+                                noRequests.setPosition(250, 250);
+                                noRequests.setFillColor(Color::Yellow);
+                                window->draw(noRequests);
+                                
+                                Text pressBack("Press ESC to go back", font, 20);
+                                pressBack.setPosition(270, 350);
+                                pressBack.setFillColor(Color::White);
+                                window->draw(pressBack);
+                                
+                                window->display();
+                                
+                                Event noReqEvent;
+                                while (window->pollEvent(noReqEvent)) {
+                                    if (noReqEvent.type == Event::Closed) {
+                                        window->close();
+                                        return;
+                                    }
+                                    if (noReqEvent.type == Event::KeyReleased && noReqEvent.key.code == Keyboard::Escape) {
+                                        manageActive = false;
+                                    }
+                                }
+                                continue;
+                            }
+                            
+                            Event manageEvent;
+                            while (window->pollEvent(manageEvent)) {
+                                if (manageEvent.type == Event::Closed) {
+                                    window->close();
+                                    return;
+                                }
+                                
+                                if (manageEvent.type == Event::KeyReleased) {
+                                    if (manageEvent.key.code == Keyboard::Up) {
+                                        requestSelected = (requestSelected - 1 + pendingCount) % pendingCount;
+                                    } else if (manageEvent.key.code == Keyboard::Down) {
+                                        requestSelected = (requestSelected + 1) % pendingCount;
+                                    } else if (manageEvent.key.code == Keyboard::A) {
+                                        // Accept request
+                                        FriendRequest* current = friendSystem->getPendingRequestsHead(playerID);
+                                        for (int i = 0; i < requestSelected && current; i++) {
+                                            current = current->next;
+                                        }
+                                        if (current) {
+                                            friendSystem->acceptFriendRequest(playerID, current->fromPlayerID);
+                                            requestSelected = 0;
+                                        }
+                                    } else if (manageEvent.key.code == Keyboard::R) {
+                                        // Reject request
+                                        FriendRequest* current = friendSystem->getPendingRequestsHead(playerID);
+                                        for (int i = 0; i < requestSelected && current; i++) {
+                                            current = current->next;
+                                        }
+                                        if (current) {
+                                            friendSystem->rejectFriendRequest(playerID, current->fromPlayerID);
+                                            requestSelected = 0;
+                                        }
+                                    } else if (manageEvent.key.code == Keyboard::Escape) {
+                                        manageActive = false;
+                                    }
+                                }
+                            }
+                            
+                            // Draw manage requests screen
+                            window->clear();
+                            window->draw(background);
+                            
+                            Text manageTitle("Manage Friend Requests", font, 30);
+                            manageTitle.setPosition(200, 50);
+                            manageTitle.setFillColor(Color::Yellow);
+                            window->draw(manageTitle);
+                            
+                            Text instructions("UP/DOWN: Navigate | A: Accept | R: Reject | ESC: Back", font, 16);
+                            instructions.setPosition(120, 100);
+                            instructions.setFillColor(Color(200, 200, 200));
+                            window->draw(instructions);
+                            
+                            // Display pending requests
+                            FriendRequest* current = friendSystem->getPendingRequestsHead(playerID);
+                            int idx = 0;
+                            int yPos = 150;
+                            
+                            while (current) {
+                                RectangleShape requestBox(Vector2f(600, 40));
+                                requestBox.setPosition(100, yPos);
+                                
+                                if (idx == requestSelected) {
+                                    requestBox.setFillColor(Color(100, 100, 100));
+                                } else {
+                                    requestBox.setFillColor(Color(50, 50, 50));
+                                }
+                                requestBox.setOutlineColor(Color::White);
+                                requestBox.setOutlineThickness(1);
+                                window->draw(requestBox);
+                                
+                                Text requestText("From: " + current->fromUsername, font, 20);
+                                requestText.setPosition(110, yPos + 10);
+                                requestText.setFillColor(Color::White);
+                                window->draw(requestText);
+                                
+                                current = current->next;
+                                idx++;
+                                yPos += 50;
+                            }
+                            
+                            window->display();
                         }
                     } else if (selected == 4) {
                         return; // Back to menu
@@ -1228,4 +1408,141 @@ void showInventoryMenu(sf::RenderWindow* window, InventoryManager* inventoryMgr,
         window->display();
     }
 }
+
+// ===== Friend Selector for Multiplayer =====
+bool selectFriendForMultiplayer(sf::RenderWindow* window, FriendSystem* friendSystem, int playerID, int& selectedPlayerID, std::string& selectedUsername) {
+    using namespace sf;
+    using namespace std;
+    
+    // Clear any pending events
+    Event clearEvent;
+    while (window->pollEvent(clearEvent)) { }
+    sf::sleep(sf::milliseconds(100));
+    while (window->pollEvent(clearEvent)) { }
+    
+    Font font;
+    if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
+        cout << "Error loading font" << endl;
+        return false;
+    }
+    
+    Texture bgTexture;
+    if (!bgTexture.loadFromFile("images/background.jpg")) {
+        cout << "Error loading background" << endl;
+        return false;
+    }
+    Sprite background(bgTexture);
+    
+    // Get friends list
+    vector<pair<int, string>> friendsList;
+    int playerIndex = friendSystem->findPlayerIndex(playerID);
+    if (playerIndex == -1) {
+        cout << "Player not found!" << endl;
+        return false;
+    }
+    
+    // Traverse friends linked list
+    FriendSystem::FriendNode* current = friendSystem->players[playerIndex].friendsHead;
+    while (current != nullptr) {
+        // Friend is either the fromPlayer or toPlayer (depending on who sent the request)
+        int friendID = (current->fromPlayerID == playerID) ? current->toPlayerID : current->fromPlayerID;
+        std::string friendName = (current->fromPlayerID == playerID) ? current->toUsername : current->fromUsername;
+        
+        int friendIndex = friendSystem->findPlayerIndex(friendID);
+        if (friendIndex != -1) {
+            friendsList.push_back(make_pair(friendID, friendName));
+        }
+        current = current->next;
+    }
+    
+    if (friendsList.empty()) {
+        // Show message that no friends available
+        Text message("No friends available. Add friends first!", font, 24);
+        message.setPosition(150, 200);
+        message.setFillColor(Color::Yellow);
+        
+        Text backMsg("Press ESC to go back", font, 20);
+        backMsg.setPosition(250, 250);
+        backMsg.setFillColor(Color::White);
+        
+        while (window->isOpen()) {
+            Event event;
+            while (window->pollEvent(event)) {
+                if (event.type == Event::Closed)
+                    window->close();
+                if (event.type == Event::KeyReleased && event.key.code == Keyboard::Escape)
+                    return false;
+            }
+            
+            window->clear();
+            window->draw(background);
+            window->draw(message);
+            window->draw(backMsg);
+            window->display();
+        }
+        return false;
+    }
+    
+    Text title("SELECT PLAYER 2", font, 36);
+    title.setPosition(220, 50);
+    title.setFillColor(Color::Yellow);
+    
+    int selected = 0;
+    RectangleShape selector(Vector2f(400, 40));
+    selector.setFillColor(Color(128, 128, 128, 150));
+    
+    vector<Text> friendTexts;
+    for (size_t i = 0; i < friendsList.size(); i++) {
+        Text friendText(friendsList[i].second, font, 24);
+        friendText.setPosition(250, 150 + i * 50);
+        friendTexts.push_back(friendText);
+    }
+    
+    Text instructions("Arrow Keys: Navigate | Enter: Select | ESC: Cancel", font, 18);
+    instructions.setPosition(150, 400);
+    instructions.setFillColor(Color(200, 200, 200));
+    
+    while (window->isOpen()) {
+        Event event;
+        while (window->pollEvent(event)) {
+            if (event.type == Event::Closed)
+                window->close();
+            
+            if (event.type == Event::KeyReleased) {
+                if (event.key.code == Keyboard::Up) {
+                    selected = (selected - 1 + friendsList.size()) % friendsList.size();
+                } else if (event.key.code == Keyboard::Down) {
+                    selected = (selected + 1) % friendsList.size();
+                } else if (event.key.code == Keyboard::Return) {
+                    selectedPlayerID = friendsList[selected].first;
+                    selectedUsername = friendsList[selected].second;
+                    return true;
+                } else if (event.key.code == Keyboard::Escape) {
+                    return false;
+                }
+            }
+        }
+        
+        window->clear();
+        window->draw(background);
+        window->draw(title);
+        window->draw(instructions);
+        
+        selector.setPosition(245, 145 + selected * 50);
+        window->draw(selector);
+        
+        for (size_t i = 0; i < friendTexts.size(); i++) {
+            if (i == selected)
+                friendTexts[i].setFillColor(Color::White);
+            else
+                friendTexts[i].setFillColor(Color(200, 200, 200));
+            window->draw(friendTexts[i]);
+        }
+        
+        window->display();
+    }
+    
+    return false;
+}
+
 

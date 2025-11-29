@@ -49,9 +49,9 @@ int moveCount = 0; // Movement counter
 int g_currentPlayerID = -1;
 std::string g_currentUsername = "";
 
-// Global Friend System and Inventory Manager
-FriendSystem g_friendSystem;
-InventoryManager g_inventoryMgr;
+// Global Friend System and Inventory Manager (use pointers to avoid early initialization)
+FriendSystem* g_friendSystem = nullptr;
+InventoryManager* g_inventoryMgr = nullptr;
 
 
 
@@ -207,48 +207,108 @@ Enemy::Enemy() {
         moveType = 0;
         patternTimer = 0.0f;
 
-        do {
-            dx = rand() % 3 - 1;
-        } while (dx == 0);
-        do {
-            dy = rand() % 3 - 1;
-        } while (dy == 0);
+        // Random angle for more natural movement
+        float angle = (rand() % 360) * 3.14159f / 180.0f;
+        dx = static_cast<int>(cos(angle) * 2);
+        dy = static_cast<int>(sin(angle) * 2);
+        
+        // Ensure non-zero movement
+        if (dx == 0 && dy == 0) {
+            dx = 1;
+            dy = 1;
+        }
 }
 
 // Enemy move implementation
 void Enemy::move(float deltaTime) {
     deltaTime = min(deltaTime, 0.033f);
+    
+    // Cap speed to prevent overshooting at high speeds
+    float effectiveSpeed = min(speed, 3.0f);
 
     if (moveType == 0) {
-        int newX = x + static_cast<int>(dx * speed * deltaTime * 60);
-        int newY = y + static_cast<int>(dy * speed * deltaTime * 60);
-        int gridX = newX / ts;
-        int gridY = newY / ts;
-        static bool errorPrinted = false;
-        if (gridX < 0 || gridX >= N || gridY < 0 || gridY >= M) {
-            if (!errorPrinted) {
-                cout << "Error: Linear enemy out of bounds (" << gridX << ", " << gridY << ")" << endl;
-                errorPrinted = true;
+        // Current grid position
+        int currentGridX = x / ts;
+        int currentGridY = y / ts;
+        
+        // Calculate movement step
+        int stepX = static_cast<int>(dx * effectiveSpeed * deltaTime * 60);
+        int stepY = static_cast<int>(dy * effectiveSpeed * deltaTime * 60);
+        
+        // Try to move
+        int newX = x + stepX;
+        int newY = y + stepY;
+        
+        // Prevent going into boundary tiles
+        if (newX <= ts) {
+            newX = ts + 1;
+            dx = abs(dx);
+            // Add randomness
+            if (rand() % 2 == 0) {
+                dy += (rand() % 3 - 1);
+                dy = clamp(dy, -2, 2);
+                if (dy == 0) dy = 1;
             }
-            newX = clamp(newX, ts, (N - 1) * ts);
-            newY = clamp(newY, ts, (M - 1) * ts);
-            dx = -dx;
-            dy = -dy;
-            gridX = newX / ts;
-            gridY = newY / ts;
-        } else {
-            errorPrinted = false;
+        } else if (newX >= (N - 1) * ts) {
+            newX = (N - 1) * ts - 1;
+            dx = -abs(dx);
+            if (rand() % 2 == 0) {
+                dy += (rand() % 3 - 1);
+                dy = clamp(dy, -2, 2);
+                if (dy == 0) dy = 1;
+            }
         }
-        if (grid[gridY][gridX] == 1) {
-            dx = -dx;
-            dy = -dy;
-            newX = x + static_cast<int>(dx * speed * deltaTime * 60);
-            newY = y + static_cast<int>(dy * speed * deltaTime * 60);
-            gridX = newX / ts;
-            gridY = newY / ts;
+        
+        if (newY <= ts) {
+            newY = ts + 1;
+            dy = abs(dy);
+            if (rand() % 2 == 0) {
+                dx += (rand() % 3 - 1);
+                dx = clamp(dx, -2, 2);
+                if (dx == 0) dx = 1;
+            }
+        } else if (newY >= (M - 1) * ts) {
+            newY = (M - 1) * ts - 1;
+            dy = -abs(dy);
+            if (rand() % 2 == 0) {
+                dx += (rand() % 3 - 1);
+                dx = clamp(dx, -2, 2);
+                if (dx == 0) dx = 1;
+            }
         }
-        x = newX;
-        y = newY;
+        
+        int newGridX = newX / ts;
+        int newGridY = newY / ts;
+        
+        // Check if new position is valid (not a wall)
+        if (newGridX >= 0 && newGridX < N && newGridY >= 0 && newGridY < M) {
+            if (grid[newGridY][newGridX] == 1) {
+                // Hit a wall - bounce
+                if (newGridX != currentGridX) {
+                    dx = -dx;
+                }
+                if (newGridY != currentGridY) {
+                    dy = -dy;
+                }
+                // Add randomness to break patterns
+                if (rand() % 3 == 0) {
+                    dx += (rand() % 3 - 1);
+                    dy += (rand() % 3 - 1);
+                    dx = clamp(dx, -2, 2);
+                    dy = clamp(dy, -2, 2);
+                    if (dx == 0) dx = (rand() % 2 == 0) ? 1 : -1;
+                    if (dy == 0) dy = (rand() % 2 == 0) ? 1 : -1;
+                }
+            } else {
+                // Valid move
+                x = newX;
+                y = newY;
+            }
+        }
+        
+        // Final safety clamp
+        x = clamp(x, ts + 1, (N - 1) * ts - 1);
+        y = clamp(y, ts + 1, (M - 1) * ts - 1);
     } else if (moveType == 1) {
         moveZigZag(*this, deltaTime);
     } else if (moveType == 2) {
@@ -268,11 +328,12 @@ void moveZigZag(Enemy& enemy, float deltaTime) {
     int gridX = enemy.x / ts;
     int gridY = enemy.y / ts;
     if (gridX < 0 || gridX >= N || gridY < 0 || gridY >= M) {
-        cout << "Error: ZigZag enemy out of bounds (" << gridX << ", " << gridY << ")" << endl;
         enemy.x = clamp(enemy.x, ts, (N - 1) * ts);
         enemy.y = clamp(enemy.y, ts, (M - 1) * ts);
         gridX = enemy.x / ts;
         gridY = enemy.y / ts;
+        enemy.dx = -enemy.dx;
+        enemy.dy = -enemy.dy;
     }
 
     if (grid[gridY][gridX] == 1) {
@@ -300,76 +361,40 @@ void moveDriftingSpiral(Enemy& enemy, float deltaTime) {
     enemy.patternTimer += deltaTime * enemy.speed;
 
     int minX = ts;
-    int maxX = (M - 1) * ts;
+    int maxX = (N - 1) * ts;
     int minY = ts;
-    int maxY = (N - 1) * ts;
+    int maxY = (M - 1) * ts;
 
-    float baseRadius = 5.0f;
-    float radiusGrowth = 1.0f;
-    static int spiralDirection = 1;
-    float driftX = 1.0f;
-    float driftY = 2.0f;
-    static float directionTimer = 0.0f;
-    const float directionSwitchInterval = 5.0f;
-
-    directionTimer += deltaTime;
-    if (directionTimer >= directionSwitchInterval) {
-        spiralDirection = -spiralDirection;
-        directionTimer = 0.0f;
-    }
-
-    float centerX = enemy.x + driftX * deltaTime * enemy.speed;
-    float centerY = enemy.y + driftY * deltaTime * enemy.speed;
-
-    centerX = clamp(centerX, static_cast<float>(minX), static_cast<float>(maxX));
-    centerY = clamp(centerY, static_cast<float>(minY), static_cast<float>(maxY));
-
+    float baseRadius = 10.0f;
+    float radiusGrowth = 0.5f;
+    float maxRadius = 50.0f;
+    
+    // Calculate spiral movement
+    float angle = enemy.patternTimer * 2.0f;
     float radius = baseRadius + radiusGrowth * enemy.patternTimer;
-
-    float angle = spiralDirection * enemy.patternTimer;
-    int newX = static_cast<int>(centerX + radius * cos(angle));
-    int newY = static_cast<int>(centerY + radius * sin(angle));
-
+    if (radius > maxRadius) {
+        radius = maxRadius;
+        enemy.patternTimer = 0.0f;
+    }
+    
+    // Calculate new position
+    int newX = static_cast<int>(enemy.x + radius * cos(angle) * deltaTime);
+    int newY = static_cast<int>(enemy.y + radius * sin(angle) * deltaTime);
+    
+    // Clamp to valid game area
     newX = clamp(newX, minX, maxX);
     newY = clamp(newY, minY, maxY);
-
-    enemy.x = newX;
-    enemy.y = newY;
-
-    int gridX = enemy.x / ts;
-    int gridY = enemy.y / ts;
-    static bool errorPrinted = false;
-    if (gridX < 0 || gridX >= N || gridY < 0 || gridY >= M) {
-        if (!errorPrinted) {
-            cout << "Error: Drifting spiral enemy out of bounds (" << gridX << ", " << gridY << ")" << endl;
-            errorPrinted = true;
-        }
-        enemy.x = clamp(enemy.x, ts, (N - 1) * ts);
-        enemy.y = clamp(enemy.y, ts, (M - 1) * ts);
-        gridX = enemy.x / ts;
-        gridY = enemy.y / ts;
-        spiralDirection = -spiralDirection;
-        enemy.patternTimer = 0.0f;
+    
+    int gridX = newX / ts;
+    int gridY = newY / ts;
+    
+    // Check bounds and walls
+    if (gridX >= 0 && gridX < N && gridY >= 0 && gridY < M && grid[gridY][gridX] != 1) {
+        enemy.x = newX;
+        enemy.y = newY;
     } else {
-        errorPrinted = false;
-    }
-
-    if (grid[gridY][gridX] == 1) {
-        spiralDirection = -spiralDirection;
+        // Hit wall or out of bounds - reverse spiral
         enemy.patternTimer = 0.0f;
-
-        int prevX = static_cast<int>(centerX - radius * cos(angle)) / ts;
-        int prevY = static_cast<int>(centerY - radius * sin(angle)) / ts;
-        if (prevX >= 0 && prevX < N && prevY >= 0 && prevY < M && grid[prevY][prevX] != 1) {
-            enemy.x = prevX * ts;
-            enemy.y = prevY * ts;
-        } else {
-            enemy.x = clamp(enemy.x - static_cast<int>(driftX * deltaTime * enemy.speed * 10), minX, maxX);
-            enemy.y = clamp(enemy.y - static_cast<int>(driftY * deltaTime * enemy.speed * 10), minY, maxY);
-        }
-
-        driftX = -driftX;
-        driftY = -driftY;
     }
 }
 
@@ -392,8 +417,8 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
     PlayerProfile profile(playerID, username);
     
     // Get player's equipped theme
-    extern InventoryManager g_inventoryMgr;
-    Theme* equippedTheme = g_inventoryMgr.getEquippedTheme(playerID);
+    extern InventoryManager* g_inventoryMgr;
+    Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(playerID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::White;
     
@@ -425,6 +450,7 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
     Sprite themeBgSprite;
     bool hasThemeBackground = false;
     if (equippedTheme && !equippedTheme->backgroundImage.empty()) {
+        cout << "Attempting to load background: " << equippedTheme->backgroundImage << endl;
         if (themeBgTexture.loadFromFile(equippedTheme->backgroundImage)) {
             themeBgSprite.setTexture(themeBgTexture);
             // Scale background to fill window (720x450)
@@ -432,7 +458,12 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
             float scaleY = 450.0f / themeBgTexture.getSize().y;
             themeBgSprite.setScale(scaleX, scaleY);
             hasThemeBackground = true;
+            cout << "Background loaded successfully!" << endl;
+        } else {
+            cout << "Failed to load background image!" << endl;
         }
+    } else {
+        cout << "No background image for this theme (Classic theme)" << endl;
     }
 
     Text scoreText;
@@ -566,11 +597,34 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
         static float lastSpeedUpdate = 0.0f;
         if (elapsed >= 20.0f && elapsed - lastSpeedUpdate >= 20.0f) {
 
-            for (int i = 0; i < enemyCount; i++) {   
-                a[i].speed += 1.0f;   // increase speed after every 20 sec
+            for (int i = 0; i < enemyCount; i++) {
+                // Cap speed at 4.0 to prevent excessive speeds
+                if (a[i].speed < 4.0f) {
+                    a[i].speed += 0.5f;
+                }
             }
             lastSpeedUpdate = elapsed;
         }
+        
+        // Add periodic direction randomization every 5 seconds to prevent loops
+        static float lastDirectionChange = 0.0f;
+        if (elapsed - lastDirectionChange >= 5.0f) {
+            for (int i = 0; i < enemyCount; i++) {
+                if (a[i].moveType == 0) {
+                    // Small chance to add random variation
+                    if (rand() % 3 == 0) {
+                        a[i].dx += (rand() % 3 - 1);
+                        a[i].dy += (rand() % 3 - 1);
+                        a[i].dx = clamp(a[i].dx, -2, 2);
+                        a[i].dy = clamp(a[i].dy, -2, 2);
+                        if (a[i].dx == 0) a[i].dx = (rand() % 2 == 0) ? 1 : -1;
+                        if (a[i].dy == 0) a[i].dy = (rand() % 2 == 0) ? 1 : -1;
+                    }
+                }
+            }
+            lastDirectionChange = elapsed;
+        }
+        
         if (elapsed >= 30.0f && !patternSwitched) {
             for (int i = 0; i < enemyCount / 2; i++) {
                 a[i].moveType = 1;  
@@ -785,8 +839,8 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
     PlayerProfile p2Profile(p2ID, p2Name);
     
     // Get player's equipped theme (use P1's theme for multiplayer)
-    extern InventoryManager g_inventoryMgr;
-    Theme* equippedTheme = g_inventoryMgr.getEquippedTheme(p1ID);
+    extern InventoryManager* g_inventoryMgr;
+    Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(p1ID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::White;
     
@@ -1047,9 +1101,31 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
         static float lastSpeedUpdate = 0.0f;
         if (elapsed >= 20.0f && elapsed - lastSpeedUpdate >= 20.0f) {
             for (int i = 0; i < enemyCount; i++) {
-                a[i].speed += 1.0f; // Increment speed
+                // Cap speed at 4.0 to prevent excessive speeds
+                if (a[i].speed < 4.0f) {
+                    a[i].speed += 0.5f;
+                }
             }
             lastSpeedUpdate = elapsed;
+        }
+        
+        // Add periodic direction randomization every 5 seconds to prevent loops
+        static float lastDirectionChange = 0.0f;
+        if (elapsed - lastDirectionChange >= 5.0f) {
+            for (int i = 0; i < enemyCount; i++) {
+                if (a[i].moveType == 0) {
+                    // Small chance to add random variation
+                    if (rand() % 3 == 0) {
+                        a[i].dx += (rand() % 3 - 1);
+                        a[i].dy += (rand() % 3 - 1);
+                        a[i].dx = clamp(a[i].dx, -2, 2);
+                        a[i].dy = clamp(a[i].dy, -2, 2);
+                        if (a[i].dx == 0) a[i].dx = (rand() % 2 == 0) ? 1 : -1;
+                        if (a[i].dy == 0) a[i].dy = (rand() % 2 == 0) ? 1 : -1;
+                    }
+                }
+            }
+            lastDirectionChange = elapsed;
         }
 
         // Switch enemy movement patterns after 30 seconds
@@ -1094,21 +1170,21 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
             }
         }
 
-        // Handle Player 1 input (arrow keys) if not paused
+        // Handle Player 1 input (arrow keys or numpad) if not paused
         if (p1Game && !p1Paused) {
-            if (Keyboard::isKeyPressed(Keyboard::Left)) { p1dx = -1; p1dy = 0; }
-            if (Keyboard::isKeyPressed(Keyboard::Right)) { p1dx = 1; p1dy = 0; }
-            if (Keyboard::isKeyPressed(Keyboard::Up)) { p1dx = 0; p1dy = -1; }
-            if (Keyboard::isKeyPressed(Keyboard::Down)) { p1dx = 0; p1dy = 1; }
+            if (Keyboard::isKeyPressed(Keyboard::Left) || Keyboard::isKeyPressed(Keyboard::Numpad4)) { p1dx = -1; p1dy = 0; }
+            if (Keyboard::isKeyPressed(Keyboard::Right) || Keyboard::isKeyPressed(Keyboard::Numpad6)) { p1dx = 1; p1dy = 0; }
+            if (Keyboard::isKeyPressed(Keyboard::Up) || Keyboard::isKeyPressed(Keyboard::Numpad8)) { p1dx = 0; p1dy = -1; }
+            if (Keyboard::isKeyPressed(Keyboard::Down) || Keyboard::isKeyPressed(Keyboard::Numpad2)) { p1dx = 0; p1dy = 1; }
         }
 
-        // Handle Player 2 input (Q, G, A, X keys) if not paused
+        // Handle Player 2 input (WASD keys) if not paused
 
         if (p2Game && !p2Paused) {
             if (Keyboard::isKeyPressed(Keyboard::A)) { p2dx = -1; p2dy = 0; }  // Left
-            if (Keyboard::isKeyPressed(Keyboard::G)) { p2dx = 1; p2dy = 0; }   // Right
-            if (Keyboard::isKeyPressed(Keyboard::Q)) { p2dx = 0; p2dy = -1; }  // Up
-            if (Keyboard::isKeyPressed(Keyboard::X)) { p2dx = 0; p2dy = 1; }   // Down
+            if (Keyboard::isKeyPressed(Keyboard::D)) { p2dx = 1; p2dy = 0; }   // Right
+            if (Keyboard::isKeyPressed(Keyboard::W)) { p2dx = 0; p2dy = -1; }  // Up
+            if (Keyboard::isKeyPressed(Keyboard::S)) { p2dx = 0; p2dy = 1; }   // Down
         }
 
         // Update player positions at fixed intervals
@@ -1123,6 +1199,12 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
                 // Check for collision with own or opponent's trail
                 if ((grid[p1newY][p1newX] == 3 && p1MoveCount > 0) || grid[p1newY][p1newX] == 4) {
                     p1Game = false; // End Player 1's game
+                    // Clear Player 1's trail
+                    for (int y = 0; y < M; y++) {
+                        for (int x = 0; x < N; x++) {
+                            if (grid[y][x] == 3) grid[y][x] = 0;
+                        }
+                    }
                 } else {
                     p1x = p1newX; // Update position
                     p1y = p1newY;
@@ -1144,6 +1226,12 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
                 // Check for collision with own or opponent's trail
                 if ((grid[p2newY][p2newX] == 4 && p2MoveCount > 0) || grid[p2newY][p2newX] == 3) {
                     p2Game = false; // End Player 2's game
+                    // Clear Player 2's trail
+                    for (int y = 0; y < M; y++) {
+                        for (int x = 0; x < N; x++) {
+                            if (grid[y][x] == 4) grid[y][x] = 0;
+                        }
+                    }
                 } else {
                     p2x = p2newX; // Update position
                     p2y = p2newY;
@@ -1283,21 +1371,49 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
                 int gridY = a[i].y / ts; // Enemy's grid Y
                 // Check if enemy hits player trails
                 if (gridX >= 0 && gridX < N && gridY >= 0 && gridY < M) {
-                    if (grid[gridY][gridX] == 3) {
+                    if (grid[gridY][gridX] == 3 && p1Game) {
                         p1Game = false; // End Player 1's game
+                        // Clear Player 1's trail
+                        for (int y = 0; y < M; y++) {
+                            for (int x = 0; x < N; x++) {
+                                if (grid[y][x] == 3) grid[y][x] = 0;
+                            }
+                        }
                     }
-                    if (grid[gridY][gridX] == 4) {
+                    if (grid[gridY][gridX] == 4 && p2Game) {
                         p2Game = false; // End Player 2's game
+                        // Clear Player 2's trail
+                        for (int y = 0; y < M; y++) {
+                            for (int x = 0; x < N; x++) {
+                                if (grid[y][x] == 4) grid[y][x] = 0;
+                            }
+                        }
                     }
                 }
                 // Check direct collisions with players
-                float distP1 = sqrt(pow(a[i].x - p1x * ts, 2) + pow(a[i].y - p1y * ts, 2));
-                float distP2 = sqrt(pow(a[i].x - p2x * ts, 2) + pow(a[i].y - p2y * ts, 2));
-                if (distP1 < ts / 2.0f) {
-                    p1Game = false; // End Player 1's game
+                if (p1Game) {
+                    float distP1 = sqrt(pow(a[i].x - p1x * ts, 2) + pow(a[i].y - p1y * ts, 2));
+                    if (distP1 < ts / 2.0f) {
+                        p1Game = false; // End Player 1's game
+                        // Clear Player 1's trail
+                        for (int y = 0; y < M; y++) {
+                            for (int x = 0; x < N; x++) {
+                                if (grid[y][x] == 3) grid[y][x] = 0;
+                            }
+                        }
+                    }
                 }
-                if (distP2 < ts / 2.0f) {
-                    p2Game = false; // End Player 2's game
+                if (p2Game) {
+                    float distP2 = sqrt(pow(a[i].x - p2x * ts, 2) + pow(a[i].y - p2y * ts, 2));
+                    if (distP2 < ts / 2.0f) {
+                        p2Game = false; // End Player 2's game
+                        // Clear Player 2's trail
+                        for (int y = 0; y < M; y++) {
+                            for (int x = 0; x < N; x++) {
+                                if (grid[y][x] == 4) grid[y][x] = 0;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1408,28 +1524,56 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
 int main() {
 
     cout << "Starting Xonix Game..." << endl;
+    cout.flush();
     
     if (!loadMenuSound()) {
         cout << "Warning: Sound failed to load, continuing anyway..." << endl;
+        cout.flush();
         // Don't exit - continue without sound
     }
 
     srand(time(0));
 
+    cout << "Creating window..." << endl;
+    cout.flush();
+    
     RenderWindow window(VideoMode(N * ts, M * ts), "Xonix");
     window.setFramerateLimit(60);
     
     cout << "Window created successfully!" << endl;
+    cout.flush();
+    
+    // Initialize global systems
+    cout << "Initializing Friend System..." << endl;
+    cout.flush();
+    g_friendSystem = new FriendSystem();
+    
+    cout << "Initializing Inventory Manager..." << endl;
+    cout.flush();
+    g_inventoryMgr = new InventoryManager();
+    
+    cout << "Systems initialized successfully!" << endl;
+    cout.flush();
 
     // Authentication system
     Authentication auth;
     
+    cout << "Authentication system initialized" << endl;
+    cout.flush();
+    
     // Show login or registration screen
     Font font;
+    cout << "Loading font..." << endl;
+    cout.flush();
+    
     if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
         cout << "Font loading failed!" << endl;
+        cout.flush();
         return -1;
     }
+    
+    cout << "Font loaded successfully!" << endl;
+    cout.flush();
 
     // Simple login/register menu
     bool authenticated = false;
@@ -1475,7 +1619,15 @@ int main() {
                     while (window.pollEvent(clearEvent)) { }
                     sf::sleep(sf::milliseconds(100));
                     while (window.pollEvent(clearEvent)) { }
+                    cout << "Showing login screen..." << endl;
+                    cout.flush();
                     authenticated = auth.showLoginScreen(&window);
+                    cout << "Login screen returned: " << (authenticated ? "SUCCESS" : "FAILED") << endl;
+                    cout.flush();
+                    if (authenticated) {
+                        cout << "Breaking out of auth loop..." << endl;
+                        cout.flush();
+                    }
                 }
                 if (event.key.code == Keyboard::Num2) {
                     // Clear events and add minimal delay before showing registration
@@ -1491,15 +1643,46 @@ int main() {
         }
     }
     
-    if (!authenticated) return 0;
+    if (!authenticated) {
+        delete g_friendSystem;
+        delete g_inventoryMgr;
+        return 0;
+    }
 
     // Get authenticated player info
+    cout << "Getting player info..." << endl;
+    cout.flush();
+    
     g_currentPlayerID = auth.getCurrentPlayerID();
     g_currentUsername = auth.getCurrentUsername(g_currentPlayerID);
     
     cout << "Logged in as: " << g_currentUsername << " (ID: " << g_currentPlayerID << ")" << endl;
+    cout.flush();
 
-    showMenu(&window);
+    // Add player to friend system
+    cout << "Adding player to friend system..." << endl;
+    cout.flush();
+    
+    g_friendSystem->addPlayer(g_currentPlayerID, g_currentUsername);
+    
+    cout << "Player added successfully!" << endl;
+    cout.flush();
+
+    cout << "Checking window status: " << (window.isOpen() ? "OPEN" : "CLOSED") << endl;
+    cout.flush();
+    
+    if (window.isOpen()) {
+        cout << "Calling showMenu..." << endl;
+        cout.flush();
+        showMenu(&window);
+    } else {
+        cout << "Window was closed during authentication!" << endl;
+        cout.flush();
+    }
+
+    // Cleanup
+    delete g_friendSystem;
+    delete g_inventoryMgr;
 
     return 0;
 }
