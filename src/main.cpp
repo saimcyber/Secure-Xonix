@@ -1,3 +1,9 @@
+/*
+ * Xonix Game Project
+ * Muhammad Amish 24i-2099
+ * Saim Zaib 24i-2023
+ */
+
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
