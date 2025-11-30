@@ -5,18 +5,29 @@ project(Xonix)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Set SFML directory
-set(SFML_DIR "C:/SFML/lib/cmake/SFML")
+set(SFML_DIR "C:/SFML/SFML-2.5.1/lib/cmake/SFML")
 
-# Find SFML package (works with both 2.5 and 3.x)
 find_package(SFML 2.5 REQUIRED COMPONENTS graphics window system audio network)
 
-# Copy assets and data to build directory
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/assets" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/")
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/data" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/")
+# Copy assets to build directory if exists
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/assets" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/")
+    # Also copy Fonts and images to root of build directory for compatibility
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets/Fonts")
+        file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/assets/Fonts" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/")
+    endif()
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets/images")
+        file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/assets/images" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/")
+    endif()
+endif()
+
+# Copy audio directory if exists
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/audio")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/audio" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/")
+endif()
 
 # Copy SFML DLLs to build directory
-file(GLOB SFML_DLLS "C:/SFML/bin/*.dll")
+file(GLOB SFML_DLLS "C:/SFML/SFML-2.5.1/bin/*.dll")
 file(COPY ${SFML_DLLS} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/")
 
 # Add executable

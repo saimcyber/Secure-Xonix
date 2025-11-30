@@ -1,30 +1,12 @@
-/*
- * Project: Xonix Game - Data Structures Project
- * Course: Data Structures
- * Authors: M. Amish, Saim Zaib
- * Roll Numbers: 24i-2099, 24i-2023
- * Date: November 2025
- * Description: Header file declaring menu system functions and constants
- */
-
 #pragma once
-
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <string>
-
-
-const int Max_menu = 6;
-const int pauseMenu = 4;
-
-
-
-// Forward declarations
+const int Max_menu = 7;
+const int pauseMenu = 5;
 class MinHeapLeaderboard;
 class FriendSystem;
 class InventoryManager;
-
-// Function declarations for the main menu and other related features
 void showMenu(sf::RenderWindow* window); 
 void showOptions(sf::RenderWindow* window);  // Function to display options
 void showEndMenu(sf::RenderWindow* window, int score);
@@ -39,14 +21,10 @@ void showNewLeaderboard(sf::RenderWindow* window, MinHeapLeaderboard* leaderboar
 void showLevelSelection(sf::RenderWindow* window);  // New level selection
 void showFriendsMenu(sf::RenderWindow* window, FriendSystem* friendSystem, int playerID);  // Friends system
 void showInventoryMenu(sf::RenderWindow* window, InventoryManager* inventoryMgr, int playerID, int playerLevel);  // Inventory system 
-bool selectFriendForMultiplayer(sf::RenderWindow* window, FriendSystem* friendSystem, int playerID, int& selectedPlayerID, std::string& selectedUsername);  // Friend selector 
-
-
-//helper function 
-
+bool selectFriendForMultiplayer(sf::RenderWindow* window, FriendSystem* friendSystem, int playerID, int& selectedPlayerID, std::string& selectedUsername);  // Friend selector
+void showLoadGameMenu(sf::RenderWindow* window);  // Load saved games
 void drawMenu(sf::RenderWindow& window, sf::Font& font, sf::Text menu[Max_menu], sf::Color menuColor = sf::Color(169, 169, 169));
 void moveUp(int& menuSelected, int Max_menu);
 void moveDown(int& menuSelected, int Max_menu);
 bool loadMenuSound();
 void drawCommonUI(sf::RenderWindow* window, sf::Sprite& background, sf::Sprite& logo);
-
