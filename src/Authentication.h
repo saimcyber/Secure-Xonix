@@ -7,6 +7,7 @@
 #pragma once
 #include <string>
 #include <SFML/Graphics.hpp>
+using namespace std;
 const int MAX_PLAYERS = 100;
 struct PlayerAccount {
     string username;

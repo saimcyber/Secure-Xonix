@@ -7,6 +7,7 @@
 #pragma once
 #include <string>
 #include <SFML/Graphics.hpp>
+using namespace std;
 struct TileNode {
     int x, y;
     int state;  // 0=empty, 1=wall, 2=trail, 3=p1trail, 4=p2trail

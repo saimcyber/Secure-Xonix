@@ -6,6 +6,7 @@
 
 #pragma once
 #include <string>
+using namespace std;
 struct GameRoomNode {
     int playerID;
     string username;

@@ -7,6 +7,7 @@
 #pragma once
 #include <string>
 #include <SFML/Graphics.hpp>
+using namespace std;
 struct Theme {
     int themeID;
     string name;

@@ -5,6 +5,7 @@
  */
 
 #include "SaveGame.h"
+#include "globals.h"
 #include "main.h"
 #include <fstream>
 #include <iostream>
@@ -19,8 +20,6 @@ using namespace sf;
 #else
 #define MKDIR(dir) mkdir(dir, 0755)
 #endif
-extern const int M;
-extern const int N;
 SaveGame::SaveGame() {
     savesDirectory = "data/saves/";
     nextSaveID = 1;

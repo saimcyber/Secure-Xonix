@@ -5,6 +5,7 @@
  */
 
 #include "Authentication.h"
+#include "globals.h"
 #include "FriendSystem.h"
 #include "Inventory.h"
 #include <fstream>
@@ -70,8 +71,8 @@ void Authentication::loadAccounts() {
     }
     file.close();
     cout << "Loaded " << playerCount << " player accounts." << endl;
-    extern FriendSystem* g_friendSystem;
-    extern InventoryManager* g_inventoryMgr;
+
+
     for (int i = 0; i < playerCount; i++) {
         g_friendSystem->addPlayer(players[i].playerID, players[i].username);
         g_inventoryMgr->addPlayer(players[i].playerID);
@@ -114,8 +115,8 @@ bool Authentication::registerPlayer(const string& username, const string& passwo
     int newPlayerID = playerCount + 1;
     playerCount++;
     saveAccounts();
-    extern FriendSystem* g_friendSystem;
-    extern InventoryManager* g_inventoryMgr;
+
+
     g_friendSystem->addPlayer(newPlayerID, username);
     g_inventoryMgr->addPlayer(newPlayerID);
     cout << "Registration successful! Welcome, " << username << "!" << endl;

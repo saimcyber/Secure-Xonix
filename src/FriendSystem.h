@@ -6,6 +6,7 @@
 
 #pragma once
 #include <string>
+using namespace std;
 namespace sf { class RenderWindow; }
 enum RequestStatus {
     PENDING,

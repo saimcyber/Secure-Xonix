@@ -10,6 +10,7 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include "globals.h"
 #include "Menu.h"
 #include "main.h"
 #include "MinHeap.h"
@@ -26,9 +27,6 @@ int mode = 1; // Global game mode: 1=single player, 2=multiplayer
 SoundBuffer changeBuffer;
 Sound changeSound;
 Music backgroundMusic; // Background music
-extern int difficulty;  // Defined in Menu.cpp showDifficulty function
-extern int g_currentPlayerID;
-extern string g_currentUsername;
 bool loadMenuSound() {
     if (!changeBuffer.loadFromFile("assets/audio/change.wav")) {
         cout << "Failed to load sound\n";
@@ -170,8 +168,6 @@ int showSubmenu(RenderWindow* window, const string options[], int count) {
         cout << "Font loading failed!" << endl;
         return -1;
     }
-    extern InventoryManager* g_inventoryMgr;
-    extern int g_currentPlayerID;
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
     Color themeSecondary = Color::Cyan;
@@ -245,7 +241,6 @@ void showGameMode(RenderWindow* window) {
         showMenu(window);  // Re-show menu after returning
     }
 }
-      int difficulty = 1; // default difficulty is easy
 void showDifficulty(RenderWindow* window) {
     string options[] = { "Easy", "Medium", "Hard", "Continous", "Back" };
     int choice = showSubmenu(window, options, 5);
@@ -298,8 +293,8 @@ void showOptions(RenderWindow* window) {
         cout << "Font loading failed!" << endl;
         return;
     }
-    extern InventoryManager* g_inventoryMgr;
-    extern int g_currentPlayerID;
+
+
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
     Color themeSecondary = Color::Cyan;
@@ -396,7 +391,6 @@ void showMenu(RenderWindow* window) {
         logo.setScale(350.0f / logo.getLocalBounds().width, 90.0f / logo.getLocalBounds().height);
     }
     PlayerProfile currentProfile(g_currentPlayerID, g_currentUsername);
-    extern InventoryManager* g_inventoryMgr;
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
     Color themeSecondary = Color::Cyan;
@@ -429,7 +423,6 @@ void showMenu(RenderWindow* window) {
                             SingleGame(window, difficulty, g_currentPlayerID, g_currentUsername);
                             currentProfile = PlayerProfile(g_currentPlayerID, g_currentUsername);
                         } else if (mode == 2) {
-                            extern FriendSystem* g_friendSystem;
                             int player2ID = 0;
                             string player2Name = "";
                             if (selectFriendForMultiplayer(window, g_friendSystem, g_currentPlayerID, player2ID, player2Name)) {
@@ -445,10 +438,8 @@ void showMenu(RenderWindow* window) {
                         showProfileMenu(window, g_currentPlayerID, g_currentUsername);
                         currentProfile = PlayerProfile(g_currentPlayerID, g_currentUsername);
                     } else if (selected == 4) {
-                        extern FriendSystem* g_friendSystem;
                         showFriendsMenu(window, g_friendSystem, g_currentPlayerID);
                     } else if (selected == 5) {
-                        extern InventoryManager* g_inventoryMgr;
                         PlayerProfile tempProfile(g_currentPlayerID, g_currentUsername);
                         showInventoryMenu(window, g_inventoryMgr, g_currentPlayerID, tempProfile.getCurrentLevel());
                         currentProfile = PlayerProfile(g_currentPlayerID, g_currentUsername);
@@ -497,8 +488,8 @@ void showPauseMenu(RenderWindow* window) {
         cout << "Font loading failed!" << endl;
         return;
     }
-    extern InventoryManager* g_inventoryMgr;
-    extern int g_currentPlayerID;
+
+
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
     Color themeSecondary = Color::Cyan;
@@ -543,7 +534,7 @@ void showPauseMenu(RenderWindow* window) {
                         return; // return to contine game 
                     } else if (selected == 1) {
                        // Save game option - trigger actual save
-                       extern SaveGame* g_saveGame;
+
                        if (g_saveGame) {
                            cout << "\n=== SAVE GAME ===" << endl;
                            cout << "Game will be saved when you press F5 during gameplay." << endl;
@@ -588,8 +579,8 @@ void showEndMenu(RenderWindow* window, int score) {
         cout << "Font loading failed!" << endl;
         return;
     }
-    extern InventoryManager* g_inventoryMgr;
-    extern int g_currentPlayerID;
+
+
     Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
@@ -681,15 +672,15 @@ void showEndMenu(RenderWindow* window, int score) {
         window->display();
     }
 }
-void showMEndMenu(RenderWindow* window, int score,  string string) {
+void showMEndMenu(RenderWindow* window, int score, string winnerName) {
     int selected = 0;
     Font font;
     if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Font loading failed!" << endl;
         return;
     }
-    extern InventoryManager* g_inventoryMgr;
-    extern int g_currentPlayerID;
+
+
     Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
@@ -706,7 +697,7 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
     Text scoreText;
     scoreText.setFont(font);
     scoreText.setCharacterSize(35);
-    scoreText.setString(string + " Score: " + to_string(score));
+    scoreText.setString(winnerName + " Score: " + to_string(score));
     scoreText.setFillColor(themeSecondary); // Use theme secondary color
     scoreText.setPosition(250, 190);
     Text winner;
@@ -714,9 +705,9 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
     winner.setCharacterSize(24);
     winner.setFillColor(Color(100, 255, 100)); // Bright green
     winner.setPosition(60, 220);
-    winner.setString(string);
+    winner.setString(winnerName);
     const int options = 3;
-    string items[options] = { "RESTART", "MAIN MENU", "EXIT" };
+    string items[options] = {"RESTART", "MAIN MENU", "EXIT"};
     Text menu[options];
     for (int i = 0; i < options; i++) {
         menu[i].setFont(font);
@@ -1216,8 +1207,8 @@ bool selectFriendForMultiplayer(sf::RenderWindow* window, FriendSystem* friendSy
 }
 
 void showLoadGameMenu(RenderWindow* window) {
-    extern SaveGame* g_saveGame;
-    extern int g_currentPlayerID;
+
+
     
     if (!g_saveGame) {
         cout << "Error: Save system not initialized!" << endl;
@@ -1376,7 +1367,7 @@ void showProfileMenu(RenderWindow* window, int playerID, const string& username)
         return;
     }
     
-    extern InventoryManager* g_inventoryMgr;
+
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
     Color themeSecondary = Color::Cyan;

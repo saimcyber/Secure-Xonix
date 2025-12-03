@@ -6,6 +6,7 @@
 
 #pragma once
 #include <string>
+using namespace std;
 struct MatchmakingPlayer {
     int playerID;
     string username;

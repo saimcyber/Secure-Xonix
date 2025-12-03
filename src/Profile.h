@@ -7,6 +7,7 @@
 #pragma once
 #include <string>
 #include <SFML/Graphics.hpp>
+using namespace std;
 struct MatchEntry {
     int matchID;
     string opponent;

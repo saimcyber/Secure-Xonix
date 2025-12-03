@@ -7,10 +7,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-extern const int M;
-extern const int N;
-extern int g_currentPlayerID;
-extern string g_currentUsername;
+#include "globals.h"
 struct Enemy {
     int x, y, dx, dy;
     float speed;

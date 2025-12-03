@@ -12,6 +12,7 @@
 #include <cstring>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include "globals.h"
 #include "Menu.h"
 #include "main.h"
 #include "Authentication.h"
@@ -27,19 +28,12 @@ template<typename T>
 T clamp(T value, T min, T max) {
     return (value < min) ? min : (value > max) ? max : value;
 }
-const int M = 25;
-const int N = 40;
 int grid[M][N] = {0};
 int ts = 18; // tile size
 int score = 0; // Score counter
 bool isPaused = false;
 float totalGameTime = 0.0f; // stores total time when paused
 int moveCount = 0; // Movement counter
-int g_currentPlayerID = -1;
-string g_currentUsername = "";
-FriendSystem* g_friendSystem = nullptr;
-InventoryManager* g_inventoryMgr = nullptr;
-SaveGame* g_saveGame = nullptr;
 void updateScore(int capturedTiles) {
     score += capturedTiles;
 }
@@ -351,13 +345,11 @@ void drop(int y, int x) {
 }
 void SingleGame(RenderWindow* window, int difficulty, int playerID, const string& username) {
     PlayerProfile profile(playerID, username);
-    extern InventoryManager* g_inventoryMgr;
     Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(playerID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::White;
     
     // Ensure background music continues during gameplay
-    extern void startBackgroundMusic();
     startBackgroundMusic();
     
     for (int i = 0; i < M; i++) {
@@ -554,7 +546,6 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
                 isPaused = false;
             }
             if (e.type == Event::KeyPressed && e.key.code == Keyboard::F5) {
-                extern SaveGame* g_saveGame;
                 if (g_saveGame) {
                     g_saveGame->saveGame(playerID, username, 1, difficulty, grid, x, y, dx, dy,
                                         score, moveCount, powerUpCount, 0, 0, 0, 0, 0, 0,
@@ -739,13 +730,11 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
                 Enemy* loadedEnemies, int loadedEnemyCount, float startTime, int saveID = -1) {
     
     PlayerProfile profile(playerID, username);
-    extern InventoryManager* g_inventoryMgr;
     Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(playerID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::White;
     
     // Ensure background music continues during gameplay
-    extern void startBackgroundMusic();
     startBackgroundMusic();
     
     // Copy loaded grid state
@@ -946,7 +935,6 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
                 isPaused = false;
             }
             if (e.type == Event::KeyPressed && e.key.code == Keyboard::F5) {
-                extern SaveGame* g_saveGame;
                 if (g_saveGame) {
                     g_saveGame->saveGame(playerID, username, 1, difficulty, grid, x, y, dx, dy,
                                         score, moveCount, powerUpCount, 0, 0, 0, 0, 0, 0,
@@ -1108,7 +1096,6 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
             
             // Delete save file if this was a loaded game
             if (saveID != -1) {
-                extern SaveGame* g_saveGame;
                 if (g_saveGame && g_saveGame->deleteSave(saveID)) {
                     cout << "Save file deleted (player died)" << endl;
                 }
@@ -1124,13 +1111,11 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
 void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1Name, int p2ID, const string& p2Name) {
     PlayerProfile p1Profile(p1ID, p1Name);
     PlayerProfile p2Profile(p2ID, p2Name);
-    extern InventoryManager* g_inventoryMgr;
     Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(p1ID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::White;
     
     // Ensure background music continues during gameplay
-    extern void startBackgroundMusic();
     startBackgroundMusic();
     
     srand(static_cast<unsigned>(time(nullptr)));
@@ -1377,7 +1362,6 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
                     isPaused = false; // Resume game
                 }
                 if (e.key.code == Keyboard::F5) {
-                    extern SaveGame* g_saveGame;
                     if (g_saveGame) {
                         g_saveGame->saveGame(p1ID, p1Name, 2, difficulty, grid, p1x, p1y, p1dx, p1dy,
                                             p1Score, p1MoveCount, p1PowerUpCount, p2x, p2y, p2dx, p2dy,
@@ -1688,7 +1672,6 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
 }
 
 void SingleGameWithSave(RenderWindow* window, int saveID) {
-    extern SaveGame* g_saveGame;
     if (!g_saveGame) {
         cout << "Error: SaveGame system not initialized!" << endl;
         return;

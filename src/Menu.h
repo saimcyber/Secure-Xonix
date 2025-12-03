@@ -16,7 +16,7 @@ class InventoryManager;
 void showMenu(sf::RenderWindow* window); 
 void showOptions(sf::RenderWindow* window);  // Function to display options
 void showEndMenu(sf::RenderWindow* window, int score);
-void showMEndMenu(sf::RenderWindow* window, int score, string string);
+void showMEndMenu(sf::RenderWindow* window, int score, string winnerName);
 void showPauseMenu(sf::RenderWindow* window) ;
 void showGameMode(sf::RenderWindow* window); // Function to display game mode options
 void showDifficulty(sf::RenderWindow* window); // Function to display difficulty options
