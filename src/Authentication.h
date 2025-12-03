@@ -9,11 +9,11 @@
 #include <SFML/Graphics.hpp>
 const int MAX_PLAYERS = 100;
 struct PlayerAccount {
-    std::string username;
-    std::string password;
-    std::string email;
+    string username;
+    string password;
+    string email;
     int playerID;
-    std::string registrationDate;
+    string registrationDate;
     bool isActive;
 };
 class Authentication {
@@ -21,20 +21,20 @@ private:
     PlayerAccount players[MAX_PLAYERS];
     int playerCount;
     int currentPlayerID;
-    std::string accountsFile;
-    bool usernameExists(const std::string& username);
-    bool isValidPassword(const std::string& password);
-    int findPlayerIndex(const std::string& username);
+    string accountsFile;
+    bool usernameExists(const string& username);
+    bool isValidPassword(const string& password);
+    int findPlayerIndex(const string& username);
     void loadAccounts();
     void saveAccounts();
-    std::string getCurrentDate();
+    string getCurrentDate();
 public:
     Authentication();
     ~Authentication();
-    bool registerPlayer(const std::string& username, const std::string& password, const std::string& email = "");
-    bool login(const std::string& username, const std::string& password);
+    bool registerPlayer(const string& username, const string& password, const string& email = "");
+    bool login(const string& username, const string& password);
     int getCurrentPlayerID() const;
-    std::string getCurrentUsername(int playerID);
+    string getCurrentUsername(int playerID);
     bool showLoginScreen(sf::RenderWindow* window);
     bool showRegistrationScreen(sf::RenderWindow* window);
 };

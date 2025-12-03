@@ -25,6 +25,7 @@ int sound = 1;
 int mode = 1; // Global game mode: 1=single player, 2=multiplayer
 SoundBuffer changeBuffer;
 Sound changeSound;
+Music backgroundMusic; // Background music
 extern int difficulty;  // Defined in Menu.cpp showDifficulty function
 extern int g_currentPlayerID;
 extern string g_currentUsername;
@@ -34,7 +35,42 @@ bool loadMenuSound() {
         return false;
     }
     changeSound.setBuffer(changeBuffer);
+    
+    // Load background music (OGG format has native SFML support)
+    if (!backgroundMusic.openFromFile("assets/audio/background_music.ogg")) {
+        cout << "Note: Background music file not found (assets/audio/background_music.ogg)\n";
+        cout << "Convert your MP3 to OGG format and place it in the assets/audio folder.\n";
+        // Don't return false - allow game to continue without background music
+    } else {
+        backgroundMusic.setLoop(true); // Loop the music
+        backgroundMusic.setVolume(30); // Set volume to 30% (0-100)
+    }
+    
     return true;
+}
+void startBackgroundMusic() {
+    if (sound == 1) {
+        // Ensure music is loaded before playing
+        if (backgroundMusic.getStatus() == Music::Stopped && backgroundMusic.getDuration() == sf::Time::Zero) {
+            // Music not loaded, try loading it now
+            if (!backgroundMusic.openFromFile("assets/audio/background_music.ogg")) {
+                // Silently fail - background music is optional
+                return;
+            }
+            backgroundMusic.setLoop(true);
+            backgroundMusic.setVolume(30);
+        }
+        
+        // Only play if music was successfully loaded (has duration)
+        if (backgroundMusic.getDuration() != sf::Time::Zero && backgroundMusic.getStatus() != Music::Playing) {
+            backgroundMusic.play();
+        }
+    }
+}
+void stopBackgroundMusic() {
+    if (backgroundMusic.getStatus() == Music::Playing) {
+        backgroundMusic.stop();
+    }
 }
 void drawMenu(RenderWindow& window, Font& font, Text menu[Max_menu], Color menuColor) {
     for (int i = 0; i < Max_menu; i++) {
@@ -147,7 +183,7 @@ int showSubmenu(RenderWindow* window, const string options[], int count) {
     Sprite logo;
     if (logoTexture.loadFromFile("assets/images/logo.png")) {
         logo.setTexture(logoTexture);
-        logo.setPosition(30, 120);
+        logo.setPosition(30, 70);
         logo.setScale(350.0f / logo.getLocalBounds().width, 90.0f / logo.getLocalBounds().height);
     }
     Text optionText[10];  // Max 10 menu items
@@ -234,11 +270,13 @@ void showSound(RenderWindow* window) {
     string options[] = { "Sound Off", "Sound On", "Back" };
     int choice = showSubmenu(window, options, 3);
     if (choice == 0) {
-        sound = 0; // 
+        sound = 0;
+        stopBackgroundMusic(); // Stop music when sound is off
         showMenu(window);  //  return to main menu after returning
     }
     else if (choice == 1) {
         sound = 1;
+        startBackgroundMusic(); // Start music when sound is on
         showMenu(window);  // Return to main menu after returning
     }
 }
@@ -273,7 +311,7 @@ void showOptions(RenderWindow* window) {
     Sprite logo;
     if (logoTexture.loadFromFile("assets/images/logo.png")) {
         logo.setTexture(logoTexture);
-        logo.setPosition(30, 120);
+        logo.setPosition(30, 70);
         logo.setScale(350.0f / logo.getLocalBounds().width, 90.0f / logo.getLocalBounds().height);
     }
     Text texts[10];
@@ -335,17 +373,17 @@ void showMenu(RenderWindow* window) {
     sf::sleep(sf::milliseconds(100));  // Reduced delay
     while (window->pollEvent(clearEvent)) { }
     Text menu[Max_menu];
-    string items[Max_menu] = { "PLAY", "LOAD GAME", "OPTIONS", "FRIENDS", "INVENTORY", "ABOUT", "EXIT" };
+    string items[Max_menu] = { "PLAY", "LOAD GAME", "OPTIONS", "PROFILE", "FRIENDS", "INVENTORY", "ABOUT", "EXIT" };
     for (int i = 0; i < Max_menu; ++i) {
         menu[i].setFont(font);
         menu[i].setCharacterSize(20);
         menu[i].setFillColor(Color(169, 169, 169));
         menu[i].setString(items[i]);
-        menu[i].setPosition(60, 230 + i * 30);
+        menu[i].setPosition(60, 180 + i * 28);
     }
     RectangleShape selector(Vector2f(200, 25));
     selector.setFillColor(Color(128, 128, 128, 150));
-    selector.setPosition(55, 230);
+    selector.setPosition(55, 180);
     Texture backgroundTexture;
     Sprite background;
     if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
@@ -354,7 +392,7 @@ void showMenu(RenderWindow* window) {
     Sprite logo;
     if (logoTexture.loadFromFile("assets/images/logo.png")) {
         logo.setTexture(logoTexture);
-        logo.setPosition(30, 120);
+        logo.setPosition(30, 70);
         logo.setScale(350.0f / logo.getLocalBounds().width, 90.0f / logo.getLocalBounds().height);
     }
     PlayerProfile currentProfile(g_currentPlayerID, g_currentUsername);
@@ -367,6 +405,10 @@ void showMenu(RenderWindow* window) {
     playerInfoText.setCharacterSize(20);
     playerInfoText.setStyle(Text::Bold);
     playerInfoText.setPosition(430, 15); // Top right corner
+    
+    // Start background music
+    startBackgroundMusic();
+    
     while (window->isOpen()) {
         equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
         themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
@@ -400,16 +442,19 @@ void showMenu(RenderWindow* window) {
                     } else if (selected == 2) {
                         showOptions(window);
                     } else if (selected == 3) {
+                        showProfileMenu(window, g_currentPlayerID, g_currentUsername);
+                        currentProfile = PlayerProfile(g_currentPlayerID, g_currentUsername);
+                    } else if (selected == 4) {
                         extern FriendSystem* g_friendSystem;
                         showFriendsMenu(window, g_friendSystem, g_currentPlayerID);
-                    } else if (selected == 4) {
+                    } else if (selected == 5) {
                         extern InventoryManager* g_inventoryMgr;
                         PlayerProfile tempProfile(g_currentPlayerID, g_currentUsername);
                         showInventoryMenu(window, g_inventoryMgr, g_currentPlayerID, tempProfile.getCurrentLevel());
                         currentProfile = PlayerProfile(g_currentPlayerID, g_currentUsername);
-                    } else if (selected == 5) {
-                        cout<<"Made with love by Saim Zaib and Amish Munir"<<endl;
                     } else if (selected == 6) {
+                        cout<<"Made with love by Saim Zaib and Amish Munir"<<endl;
+                    } else if (selected == 7) {
                         window->close();
                     }
                 }
@@ -417,7 +462,7 @@ void showMenu(RenderWindow* window) {
         }
         window->clear(themeColor);
         drawCommonUI(window, background, logo);
-        selector.setPosition(55, 230 + selected * 30);
+        selector.setPosition(55, 180 + selected * 28);
         window->draw(selector);
         for (int i = 0; i < Max_menu; i++) {
             if (i == selected) {
@@ -477,7 +522,7 @@ void showPauseMenu(RenderWindow* window) {
     Sprite logo;
     if (logoTexture.loadFromFile("assets/images/logo.png")) {
         logo.setTexture(logoTexture);
-        logo.setPosition(30, 120);
+        logo.setPosition(30, 70);
         logo.setScale(350.0f / logo.getLocalBounds().width, 80.0f / logo.getLocalBounds().height);
     }
     while (window->isOpen()) {
@@ -671,7 +716,7 @@ void showMEndMenu(RenderWindow* window, int score,  string string) {
     winner.setPosition(60, 220);
     winner.setString(string);
     const int options = 3;
-    std::string items[options] = { "RESTART", "MAIN MENU", "EXIT" };
+    string items[options] = { "RESTART", "MAIN MENU", "EXIT" };
     Text menu[options];
     for (int i = 0; i < options; i++) {
         menu[i].setFont(font);
@@ -1317,6 +1362,179 @@ void showLoadGameMenu(RenderWindow* window) {
                 window->draw(saveText);
             }
         }
+        
+        window->display();
+    }
+}
+
+void showProfileMenu(RenderWindow* window, int playerID, const string& username) {
+    int selected = 0;
+    
+    Font font;
+    if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
+        cout << "Font loading failed!" << endl;
+        return;
+    }
+    
+    extern InventoryManager* g_inventoryMgr;
+    Theme* equippedTheme = nullptr;
+    Color themeColor = Color::Blue;
+    Color themeSecondary = Color::Cyan;
+    
+    string options[] = { "View Profile", "Match History", "Friends List", "Back" };
+    int optionCount = 4;
+    
+    Texture backgroundTexture;
+    Sprite background;
+    if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
+        background.setTexture(backgroundTexture);
+    
+    Texture logoTexture;
+    Sprite logo;
+    if (logoTexture.loadFromFile("assets/images/logo.png")) {
+        logo.setTexture(logoTexture);
+        logo.setPosition(30, 30);
+        logo.setScale(350.0f / logo.getLocalBounds().width, 80.0f / logo.getLocalBounds().height);
+    }
+    
+    while (window->isOpen()) {
+        equippedTheme = g_inventoryMgr->getEquippedTheme(playerID);
+        themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
+        themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
+        
+        Event event;
+        while (window->pollEvent(event)) {
+            if (event.type == Event::Closed)
+                window->close();
+            
+            if (event.type == Event::KeyReleased) {
+                if (event.key.code == Keyboard::Escape)
+                    return;
+                else if (event.key.code == Keyboard::Up)
+                    moveUp(selected, optionCount);
+                else if (event.key.code == Keyboard::Down)
+                    moveDown(selected, optionCount);
+                else if (event.key.code == Keyboard::Return) {
+                    if (selected == 0) {
+                        // View Profile
+                        PlayerProfile profile(playerID, username); // Reload profile to get latest data
+                        bool viewing = true;
+                        while (viewing && window->isOpen()) {
+                            Event viewEvent;
+                            while (window->pollEvent(viewEvent)) {
+                                if (viewEvent.type == Event::Closed)
+                                    window->close();
+                                if (viewEvent.type == Event::KeyReleased && viewEvent.key.code == Keyboard::Escape)
+                                    viewing = false;
+                            }
+                            
+                            if (!viewing) break; // Exit before rendering
+                            
+                            window->clear(themeColor);
+                            drawCommonUI(window, background, logo);
+                            profile.displayProfile(window, font);
+                            window->display();
+                        }
+                        // Clear any remaining events
+                        Event clearEvent;
+                        while (window->pollEvent(clearEvent)) { }
+                    } else if (selected == 1) {
+                        // Match History
+                        PlayerProfile profile(playerID, username); // Reload profile to get latest data
+                        bool viewing = true;
+                        while (viewing && window->isOpen()) {
+                            Event viewEvent;
+                            while (window->pollEvent(viewEvent)) {
+                                if (viewEvent.type == Event::Closed)
+                                    window->close();
+                                if (viewEvent.type == Event::KeyReleased && viewEvent.key.code == Keyboard::Escape)
+                                    viewing = false;
+                            }
+                            
+                            if (!viewing) break; // Exit before rendering
+                            
+                            window->clear(themeColor);
+                            drawCommonUI(window, background, logo);
+                            profile.displayMatchHistory(window, font);
+                            window->display();
+                        }
+                        // Clear any remaining events
+                        Event clearEvent;
+                        while (window->pollEvent(clearEvent)) { }
+                    } else if (selected == 2) {
+                        // Friends List
+                        PlayerProfile profile(playerID, username); // Reload profile to get latest data
+                        bool viewing = true;
+                        while (viewing && window->isOpen()) {
+                            Event viewEvent;
+                            while (window->pollEvent(viewEvent)) {
+                                if (viewEvent.type == Event::Closed)
+                                    window->close();
+                                if (viewEvent.type == Event::KeyReleased && viewEvent.key.code == Keyboard::Escape)
+                                    viewing = false;
+                            }
+                            
+                            if (!viewing) break; // Exit before rendering
+                            
+                            window->clear(themeColor);
+                            drawCommonUI(window, background, logo);
+                            profile.displayFriendsList(window, font);
+                            window->display();
+                        }
+                        // Clear any remaining events
+                        Event clearEvent;
+                        while (window->pollEvent(clearEvent)) { }
+                    } else if (selected == 3) {
+                        // Back
+                        return;
+                    }
+                }
+            }
+        }
+        
+        // Reload profile to get latest data for stats summary
+        PlayerProfile profile(playerID, username);
+        
+        window->clear(themeColor);
+        drawCommonUI(window, background, logo);
+        
+        Text title("PLAYER PROFILE MENU", font, 30);
+        title.setFillColor(themeSecondary);
+        title.setPosition(150, 130);
+        window->draw(title);
+        
+        Text playerName(username, font, 24);
+        playerName.setFillColor(Color::Yellow);
+        playerName.setPosition(250, 170);
+        window->draw(playerName);
+        
+        RectangleShape selector(Vector2f(250, 28));
+        selector.setFillColor(Color(128, 128, 128, 150));
+        selector.setPosition(180, 210 + selected * 35);
+        window->draw(selector);
+        
+        for (int i = 0; i < optionCount; i++) {
+            Text optionText(options[i], font, 20);
+            optionText.setPosition(185, 210 + i * 35);
+            
+            if (i == selected)
+                optionText.setFillColor(themeSecondary);
+            else
+                optionText.setFillColor(Color(200, 200, 200));
+            
+            window->draw(optionText);
+        }
+        
+        // Display profile stats summary
+        Text statsText("", font, 16);
+        statsText.setPosition(150, 360);
+        statsText.setFillColor(Color(220, 220, 220));
+        string stats = "Level: " + to_string(profile.getCurrentLevel()) + " (" + profile.getLevelTitle() + ")\n";
+        stats += "Total Points: " + to_string(profile.getTotalPoints()) + "\n";
+        stats += "Matches: " + to_string(profile.getMatchesWon()) + "W / " + to_string(profile.getMatchesLost()) + "L\n";
+        stats += "Friends: " + to_string(profile.getFriendCount());
+        statsText.setString(stats);
+        window->draw(statsText);
         
         window->display();
     }

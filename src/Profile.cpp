@@ -138,7 +138,7 @@ void PlayerProfile::addFriend(int friendID, const string& friendName) {
     FriendNode* newFriend = new FriendNode(friendID, friendName);
     newFriend->next = friendsHead;
     friendsHead = newFriend;
-    saveProfile();
+    // Note: saveProfile() is called by the destructor, so changes are persisted
 }
 bool PlayerProfile::removeFriend(int friendID) {
     if (friendsHead == nullptr) return false;
@@ -146,7 +146,7 @@ bool PlayerProfile::removeFriend(int friendID) {
         FriendNode* temp = friendsHead;
         friendsHead = friendsHead->next;
         delete temp;
-        saveProfile();
+        // Note: saveProfile() is called by the destructor
         return true;
     }
     FriendNode* current = friendsHead;
@@ -155,7 +155,7 @@ bool PlayerProfile::removeFriend(int friendID) {
             FriendNode* temp = current->next;
             current->next = current->next->next;
             delete temp;
-            saveProfile();
+            // Note: saveProfile() is called by the destructor
             return true;
         }
         current = current->next;
@@ -221,9 +221,9 @@ void PlayerProfile::displayProfile(RenderWindow* window, Font& font) {
 void PlayerProfile::displayMatchHistory(RenderWindow* window, Font& font) {
     Text title("MATCH HISTORY", font, 28);
     title.setFillColor(Color::Yellow);
-    title.setPosition(220, 20);
+    title.setPosition(220, 130);
     window->draw(title);
-    int yPos = 70;
+    int yPos = 180;
     for (int i = matchCount - 1; i >= 0 && i >= matchCount - 8; i--) {
         Text matchText("", font, 16);
         matchText.setPosition(50, yPos);
@@ -246,9 +246,9 @@ void PlayerProfile::displayMatchHistory(RenderWindow* window, Font& font) {
 void PlayerProfile::displayFriendsList(RenderWindow* window, Font& font) {
     Text title("FRIENDS LIST", font, 28);
     title.setFillColor(Color::Yellow);
-    title.setPosition(240, 20);
+    title.setPosition(240, 130);
     window->draw(title);
-    int yPos = 80;
+    int yPos = 180;
     int count = 1;
     FriendNode* current = friendsHead;
     while (current != nullptr && count <= 10) {

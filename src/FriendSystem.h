@@ -14,18 +14,18 @@ enum RequestStatus {
 };
 struct FriendRequest {
     int fromPlayerID;
-    std::string fromUsername;
+    string fromUsername;
     int toPlayerID;
-    std::string toUsername;
+    string toUsername;
     RequestStatus status;
     FriendRequest* next;
-    FriendRequest(int fromID, std::string fromName, int toID, std::string toName)
+    FriendRequest(int fromID, string fromName, int toID, string toName)
         : fromPlayerID(fromID), fromUsername(fromName), toPlayerID(toID), 
           toUsername(toName), status(PENDING), next(nullptr) {}
 };
 struct PlayerWithFriends {
     int playerID;
-    std::string username;
+    string username;
     FriendRequest* friendsHead;      // Linked list of accepted friends
     FriendRequest* pendingHead;      // Linked list of pending requests
     PlayerWithFriends() : playerID(0), username(""), friendsHead(nullptr), pendingHead(nullptr) {}
@@ -38,18 +38,18 @@ private:
     PlayerWithFriends players[100];  // Array of players
     int playerCount;
     int hashTable[HASH_TABLE_SIZE];  // Maps username hash -> player index (-1 = empty)
-    int hashFunction(const std::string& username);
-    void insertIntoHashTable(const std::string& username, int playerIndex);
-    int searchHashTable(const std::string& username);
-    int findPlayerIndexByUsername(const std::string& username);
+    int hashFunction(const string& username);
+    void insertIntoHashTable(const string& username, int playerIndex);
+    int searchHashTable(const string& username);
+    int findPlayerIndexByUsername(const string& username);
     void loadFriendData();
     void saveFriendData();
 public:
     FriendSystem();
     ~FriendSystem();
     int findPlayerIndex(int playerID);
-    void addPlayer(int playerID, const std::string& username);
-    bool sendFriendRequest(int fromPlayerID, const std::string& toUsername);
+    void addPlayer(int playerID, const string& username);
+    bool sendFriendRequest(int fromPlayerID, const string& toUsername);
     bool acceptFriendRequest(int playerID, int fromPlayerID);
     bool rejectFriendRequest(int playerID, int fromPlayerID);
     void removeFriend(int playerID, int friendID);
@@ -59,6 +59,6 @@ public:
     bool areFriends(int player1ID, int player2ID);
     FriendRequest* getPendingRequestsHead(int playerID);
     int getPendingRequestsCount(int playerID);
-    friend bool selectFriendForMultiplayer(sf::RenderWindow*, FriendSystem*, int, int&, std::string&);
+    friend bool selectFriendForMultiplayer(sf::RenderWindow*, FriendSystem*, int, int&, string&);
     friend void showFriendsMenu(sf::RenderWindow*, FriendSystem*, int);
 };

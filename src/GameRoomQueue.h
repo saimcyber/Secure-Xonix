@@ -8,10 +8,10 @@
 #include <string>
 struct GameRoomNode {
     int playerID;
-    std::string username;
+    string username;
     int totalPoints;
     GameRoomNode* next;
-    GameRoomNode(int id, std::string name, int points) 
+    GameRoomNode(int id, string name, int points) 
         : playerID(id), username(name), totalPoints(points), next(nullptr) {}
 };
 class GameRoomQueue {
@@ -22,7 +22,7 @@ private:
 public:
     GameRoomQueue();
     ~GameRoomQueue();
-    void enqueue(int playerID, const std::string& username, int totalPoints);
+    void enqueue(int playerID, const string& username, int totalPoints);
     GameRoomNode* dequeue();  // Remove and return front player
     GameRoomNode* peek();     // View front without removing
     bool isEmpty() { return front == nullptr; }

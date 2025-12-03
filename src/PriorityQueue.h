@@ -8,11 +8,11 @@
 #include <string>
 struct MatchmakingPlayer {
     int playerID;
-    std::string username;
+    string username;
     int totalPoints;
     int priority;  // Higher points = higher priority
     MatchmakingPlayer() : playerID(0), username(""), totalPoints(0), priority(0) {}
-    MatchmakingPlayer(int id, std::string name, int points) 
+    MatchmakingPlayer(int id, string name, int points) 
         : playerID(id), username(name), totalPoints(points), priority(points) {}
 };
 class MatchmakingPriorityQueue {
@@ -27,7 +27,7 @@ private:
     void swap(int i, int j);
 public:
     MatchmakingPriorityQueue();
-    void enqueue(int playerID, const std::string& username, int totalPoints);
+    void enqueue(int playerID, const string& username, int totalPoints);
     MatchmakingPlayer dequeue();  // Remove and return highest priority player
     MatchmakingPlayer peek();     // View highest priority without removing
     bool isEmpty() { return size == 0; }

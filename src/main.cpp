@@ -355,6 +355,11 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
     Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(playerID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::White;
+    
+    // Ensure background music continues during gameplay
+    extern void startBackgroundMusic();
+    startBackgroundMusic();
+    
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < N; j++) {
             grid[i][j] = 0;
@@ -714,6 +719,14 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
             MinHeapLeaderboard leaderboard;
             leaderboard.insertOrUpdate(playerID, username, score);
             profile.addPoints(score);
+            
+            // Record match history for loaded single player game (AI opponent)
+            profile.addMatchResult("AI", score, 0, playerWon);
+            
+            showEndMenu(window, score);
+            // Record match history for single player (AI opponent)
+            profile.addMatchResult("AI", score, 0, playerWon);
+            
             showEndMenu(window, score);
         }
         window->display();
@@ -730,6 +743,10 @@ void SingleGame(RenderWindow* window, int difficulty, int playerID, const string
     Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(playerID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::White;
+    
+    // Ensure background music continues during gameplay
+    extern void startBackgroundMusic();
+    startBackgroundMusic();
     
     // Copy loaded grid state
     for (int i = 0; i < M; i++) {
@@ -1111,6 +1128,11 @@ void MultiGame(RenderWindow* window, int difficulty, int p1ID, const string& p1N
     Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(p1ID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::White;
+    
+    // Ensure background music continues during gameplay
+    extern void startBackgroundMusic();
+    startBackgroundMusic();
+    
     srand(static_cast<unsigned>(time(nullptr)));
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < N; j++) {

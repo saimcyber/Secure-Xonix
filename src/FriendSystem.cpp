@@ -5,6 +5,7 @@
  */
 
 #include "FriendSystem.h"
+#include "Profile.h"
 #include <iostream>
 #include <fstream>
 using namespace std;
@@ -150,7 +151,21 @@ bool FriendSystem::acceptFriendRequest(int playerID, int fromPlayerID) {
             friend2->next = players[fromIndex].friendsHead;
             players[fromIndex].friendsHead = friend2;
             delete current;
+            
+            // Sync with PlayerProfile system
+            {
+                PlayerProfile playerProfile(playerID, players[playerIndex].username);
+                playerProfile.addFriend(fromPlayerID, players[fromIndex].username);
+                // Profile saves on destruction (when going out of scope)
+            }
+            {
+                PlayerProfile friendProfile(fromPlayerID, players[fromIndex].username);
+                friendProfile.addFriend(playerID, players[playerIndex].username);
+                // Profile saves on destruction (when going out of scope)
+            }
+            
             saveFriendData();  // Save immediately after accepting
+            
             cout << "Friend request accepted!" << endl;
             return true;
         }
@@ -216,7 +231,21 @@ void FriendSystem::removeFriend(int playerID, int friendID) {
         prev = current;
         current = current->next;
     }
+    
+    // Sync with PlayerProfile system
+    {
+        PlayerProfile playerProfile(playerID, players[playerIndex].username);
+        playerProfile.removeFriend(friendID);
+        // Profile saves on destruction
+    }
+    {
+        PlayerProfile friendProfile(friendID, players[friendIndex].username);
+        friendProfile.removeFriend(playerID);
+        // Profile saves on destruction
+    }
+    
     saveFriendData();  // Save immediately after removal
+    
     cout << "Friend removed!" << endl;
 }
 void FriendSystem::viewFriendsList(int playerID) {

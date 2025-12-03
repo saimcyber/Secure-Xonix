@@ -9,17 +9,17 @@
 #include <SFML/Graphics.hpp>
 struct Theme {
     int themeID;
-    std::string name;
-    std::string description;
+    string name;
+    string description;
     sf::Color primaryColor;
     sf::Color secondaryColor;
-    std::string backgroundImage;  // Path to background image
+    string backgroundImage;  // Path to background image
     int unlockLevel;  // Level required to unlock
     bool isPremium;   // Requires premium purchase
     Theme() : themeID(0), name(""), description(""), 
               primaryColor(sf::Color::White), secondaryColor(sf::Color::Black),
               backgroundImage(""), unlockLevel(0), isPremium(false) {}
-    Theme(int id, std::string n, std::string desc, sf::Color pc, sf::Color sc, std::string bgImg, int level, bool premium)
+    Theme(int id, string n, string desc, sf::Color pc, sf::Color sc, string bgImg, int level, bool premium)
         : themeID(id), name(n), description(desc), primaryColor(pc), secondaryColor(sc),
           backgroundImage(bgImg), unlockLevel(level), isPremium(premium) {}
 };

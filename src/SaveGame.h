@@ -21,9 +21,9 @@ struct SavedEnemy {
 };
 struct GameState {
     int saveID;
-    std::string timestamp;
+    string timestamp;
     int playerID;
-    std::string playerName;
+    string playerName;
     int gameMode;  // 1=single, 2=multi
     int difficulty;
     int playerX, playerY, playerDX, playerDY;
@@ -42,15 +42,15 @@ struct GameState {
 class SaveGame {
 private:
     GameState currentState;
-    std::string savesDirectory;
+    string savesDirectory;
     int nextSaveID;
     void loadSaveIDCounter();
     void saveSaveIDCounter();
-    std::string getCurrentTimestamp();
+    string getCurrentTimestamp();
 public:
     SaveGame();
     ~SaveGame();
-    bool saveGame(int playerID, const std::string& playerName, int gameMode, int difficulty,
+    bool saveGame(int playerID, const string& playerName, int gameMode, int difficulty,
                   int grid[25][40], int playerX, int playerY, int playerDX, int playerDY,
                   int score, int moveCount, int powerUpCount,
                   int p2X, int p2Y, int p2DX, int p2DY, int p2Score, int p2PowerUpCount,

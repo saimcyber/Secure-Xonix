@@ -9,16 +9,16 @@
 #include <SFML/Graphics.hpp>
 struct LeaderboardEntry {
     int playerID;
-    std::string username;
+    string username;
     int totalPoints;
     LeaderboardEntry() : playerID(0), username(""), totalPoints(0) {}
-    LeaderboardEntry(int id, std::string name, int points) : playerID(id), username(name), totalPoints(points) {}
+    LeaderboardEntry(int id, string name, int points) : playerID(id), username(name), totalPoints(points) {}
 };
 class MinHeapLeaderboard {
 private:
     LeaderboardEntry heap[10];  // Fixed size array for top 10
     int size;
-    std::string leaderboardFile;
+    string leaderboardFile;
     void heapifyUp(int index);
     void heapifyDown(int index);
     int parent(int index) { return (index - 1) / 2; }
@@ -30,7 +30,7 @@ private:
 public:
     MinHeapLeaderboard();
     ~MinHeapLeaderboard();
-    void insertOrUpdate(int playerID, const std::string& username, int points);
+    void insertOrUpdate(int playerID, const string& username, int points);
     LeaderboardEntry getMin();
     bool isFull() { return size == 10; }
     int getSize() { return size; }
