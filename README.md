@@ -15,7 +15,7 @@ The architecture emphasizes **secure memory handling**, **safe file operations**
 
 | Classic Mode | Ocean Theme (Unlockable) |
 | --- | --- |
-| <img src="assets/screenshots/Screenshot 2026-02-03 210926.png" width="420"> | <img src="assets/screenshots/Screenshot 2026-02-03 211032.jpg" width="420"> |
+| <img src="assets/screenshots/Screenshot 2026-02-03 210926.png" width="420"> | <img src="assets/screenshots/Screenshot 2026-02-03 211032.png" width="420"> |
 
 ---
 
@@ -23,11 +23,11 @@ The architecture emphasizes **secure memory handling**, **safe file operations**
 
 | Main Menu | Authentication |
 | --- | --- |
-| <img src="assets/screenshots/Screenshot 2026-02-03 210901.jpg" width="420"> | <img src="assets/screenshots/Screenshot 2026-02-03 210827.jpg" width="420"> |
+| <img src="assets/screenshots/Screenshot 2026-02-03 210901.png" width="420"> | <img src="assets/screenshots/Screenshot 2026-02-03 210827.png" width="420"> |
 
 | Inventory (AVL Tree) | Social Hub (Hash Table) |
 | --- | --- |
-| <img src="assets/screenshots/Screenshot 2026-02-03 211017.jpg" width="420"> | <img src="assets/screenshots/Screenshot 2026-02-03 211002.jpg" width="420"> |
+| <img src="assets/screenshots/Screenshot 2026-02-03 211017.png" width="420"> | <img src="assets/screenshots/Screenshot 2026-02-03 211002.png" width="420"> |
 
 ---
 
