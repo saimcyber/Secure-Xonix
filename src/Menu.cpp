@@ -1,9 +1,3 @@
-/*
- * Xonix Game Project
- * Muhammad Amish 24i-2099
- * Saim Zaib 24i-2023
- */
-
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -33,39 +27,34 @@ bool loadMenuSound() {
         return false;
     }
     changeSound.setBuffer(changeBuffer);
-    
-    // Load background music (OGG format has native SFML support)
-    if (!backgroundMusic.openFromFile("assets/audio/background_music.ogg")) {
-        cout << "Note: Background music file not found (assets/audio/background_music.ogg)\n";
-        cout << "Convert your MP3 to OGG format and place it in the assets/audio folder.\n";
-        // Don't return false - allow game to continue without background music
+    if (!backgroundMusic.openFromFile("assets/audio/Carte-Blanq-Nils-van-Zandt-Maxx-Power-33-Max-Verstappen-Official-Audio.ogg")) {
+        cout << "Note: Background music file not found\n";
     } else {
         backgroundMusic.setLoop(true); // Loop the music
         backgroundMusic.setVolume(30); // Set volume to 30% (0-100)
     }
-    
     return true;
 }
 void startBackgroundMusic() {
     if (sound == 1) {
-        // Ensure music is loaded before playing
         if (backgroundMusic.getStatus() == Music::Stopped && backgroundMusic.getDuration() == sf::Time::Zero) {
-            // Music not loaded, try loading it now
-            if (!backgroundMusic.openFromFile("assets/audio/background_music.ogg")) {
-                // Silently fail - background music is optional
+            if (!backgroundMusic.openFromFile("assets/audio/Carte-Blanq-Nils-van-Zandt-Maxx-Power-33-Max-Verstappen-Official-Audio.ogg")) {
                 return;
             }
             backgroundMusic.setLoop(true);
             backgroundMusic.setVolume(30);
         }
-        
-        // Only play if music was successfully loaded (has duration)
         if (backgroundMusic.getDuration() != sf::Time::Zero && backgroundMusic.getStatus() != Music::Playing) {
             backgroundMusic.play();
         }
     }
 }
 void stopBackgroundMusic() {
+    if (backgroundMusic.getStatus() == Music::Playing) {
+        backgroundMusic.stop();
+    }
+}
+void cleanupAudio() {
     if (backgroundMusic.getStatus() == Music::Playing) {
         backgroundMusic.stop();
     }
@@ -293,8 +282,6 @@ void showOptions(RenderWindow* window) {
         cout << "Font loading failed!" << endl;
         return;
     }
-
-
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
     Color themeSecondary = Color::Cyan;
@@ -399,10 +386,7 @@ void showMenu(RenderWindow* window) {
     playerInfoText.setCharacterSize(20);
     playerInfoText.setStyle(Text::Bold);
     playerInfoText.setPosition(430, 15); // Top right corner
-    
-    // Start background music
     startBackgroundMusic();
-    
     while (window->isOpen()) {
         equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
         themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
@@ -488,8 +472,6 @@ void showPauseMenu(RenderWindow* window) {
         cout << "Font loading failed!" << endl;
         return;
     }
-
-
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
     Color themeSecondary = Color::Cyan;
@@ -533,13 +515,10 @@ void showPauseMenu(RenderWindow* window) {
                     if (selected == 0) {
                         return; // return to contine game 
                     } else if (selected == 1) {
-                       // Save game option - trigger actual save
-
                        if (g_saveGame) {
                            cout << "\n=== SAVE GAME ===" << endl;
                            cout << "Game will be saved when you press F5 during gameplay." << endl;
                            cout << "Or press ENTER to save now..." << endl;
-                           // Note: Can't save here without game state, but inform user about F5
                        }
                        return; // Resume game so they can press F5
                     } else if (selected == 2) {
@@ -579,8 +558,6 @@ void showEndMenu(RenderWindow* window, int score) {
         cout << "Font loading failed!" << endl;
         return;
     }
-
-
     Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
@@ -679,8 +656,6 @@ void showMEndMenu(RenderWindow* window, int score, string winnerName) {
         cout << "Font loading failed!" << endl;
         return;
     }
-
-
     Theme* equippedTheme = g_inventoryMgr->getEquippedTheme(g_currentPlayerID);
     Color themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
     Color themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
@@ -699,7 +674,7 @@ void showMEndMenu(RenderWindow* window, int score, string winnerName) {
     scoreText.setCharacterSize(35);
     scoreText.setString(winnerName + " Score: " + to_string(score));
     scoreText.setFillColor(themeSecondary); // Use theme secondary color
-    scoreText.setPosition(250, 190);
+    scoreText.setPosition(100, 190);
     Text winner;
     winner.setFont(font);
     winner.setCharacterSize(24);
@@ -1205,23 +1180,16 @@ bool selectFriendForMultiplayer(sf::RenderWindow* window, FriendSystem* friendSy
     }
     return false;
 }
-
 void showLoadGameMenu(RenderWindow* window) {
-
-
-    
     if (!g_saveGame) {
         cout << "Error: Save system not initialized!" << endl;
         return;
     }
-    
     Font font;
     if (!font.loadFromFile("Fonts/AlexandriaFLF.ttf")) {
         cout << "Error: Failed to load font!" << endl;
         return;
     }
-    
-    // Collect all save files for current player
     vector<int> saveIDs;
     for (int id = 1; id < 100; id++) {
         string filename = "data/saves/save_" + to_string(id) + ".txt";
@@ -1234,15 +1202,12 @@ void showLoadGameMenu(RenderWindow* window) {
             getline(file, timestamp);
             file >> pid;
             file.close();
-            
             if (pid == g_currentPlayerID) {
                 saveIDs.push_back(saveID);
             }
         }
     }
-    
     if (saveIDs.empty()) {
-        // Show "no saves" message
         while (window->isOpen()) {
             Event e;
             while (window->pollEvent(e)) {
@@ -1251,30 +1216,24 @@ void showLoadGameMenu(RenderWindow* window) {
                 if (e.type == Event::KeyPressed && e.key.code == Keyboard::Escape)
                     return;
             }
-            
             window->clear(Color(30, 30, 30));
             Text noSavesText("No saved games found!", font, 30);
             noSavesText.setFillColor(Color::White);
             noSavesText.setPosition(200, 200);
-            
             Text backText("Press ESC to go back", font, 20);
             backText.setFillColor(Color(150, 150, 150));
             backText.setPosition(220, 300);
-            
             window->draw(noSavesText);
             window->draw(backText);
             window->display();
         }
         return;
     }
-    
     int selected = 0;
-    
     Texture backgroundTexture;
     Sprite background;
     if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
         background.setTexture(backgroundTexture);
-    
     while (window->isOpen()) {
         Event e;
         while (window->pollEvent(e)) {
@@ -1288,42 +1247,32 @@ void showLoadGameMenu(RenderWindow* window) {
                 else if (e.key.code == Keyboard::Down)
                     moveDown(selected, saveIDs.size());
                 else if (e.key.code == Keyboard::Return) {
-                    // Load the selected save
                     int saveID = saveIDs[selected];
                     SingleGameWithSave(window, saveID);
                     return;
                 }
             }
         }
-        
         window->clear(Color(30, 30, 30));
         window->draw(background);
-        
         Text title("LOAD SAVED GAME", font, 35);
         title.setFillColor(Color::Yellow);
         title.setPosition(180, 50);
         window->draw(title);
-        
         Text instructions("Use Arrow Keys to navigate, ENTER to load, ESC to go back", font, 16);
         instructions.setFillColor(Color(200, 200, 200));
         instructions.setPosition(80, 100);
         window->draw(instructions);
-        
         RectangleShape selector(Vector2f(400, 30));
         selector.setFillColor(Color(100, 100, 255, 100));
         selector.setPosition(150, 150 + selected * 40);
         window->draw(selector);
-        
-        // Display save files
         for (size_t i = 0; i < saveIDs.size(); i++) {
             int saveID = saveIDs[i];
-            
-            // Read save info
             string filename = "data/saves/save_" + to_string(saveID) + ".txt";
             ifstream file(filename);
             string timestamp;
             int gameMode, difficulty;
-            
             if (file.is_open()) {
                 int sid, pid;
                 string playerName;
@@ -1335,51 +1284,39 @@ void showLoadGameMenu(RenderWindow* window) {
                 getline(file, playerName);
                 file >> gameMode >> difficulty;
                 file.close();
-                
                 string modeStr = (gameMode == 1) ? "Single" : "Multi";
                 string diffStr = (difficulty == 1) ? "Easy" : 
                                 (difficulty == 2) ? "Medium" : 
                                 (difficulty == 3) ? "Hard" : "Continuous";
-                
                 Text saveText("Save #" + to_string(saveID) + " - " + timestamp + 
                              " [" + modeStr + "/" + diffStr + "]", font, 18);
                 saveText.setPosition(160, 155 + i * 40);
-                
                 if (i == selected)
                     saveText.setFillColor(Color::White);
                 else
                     saveText.setFillColor(Color(180, 180, 180));
-                
                 window->draw(saveText);
             }
         }
-        
         window->display();
     }
 }
-
 void showProfileMenu(RenderWindow* window, int playerID, const string& username) {
     int selected = 0;
-    
     Font font;
     if (!font.loadFromFile("assets/Fonts/AlexandriaFLF.ttf")) {
         cout << "Font loading failed!" << endl;
         return;
     }
-    
-
     Theme* equippedTheme = nullptr;
     Color themeColor = Color::Blue;
     Color themeSecondary = Color::Cyan;
-    
     string options[] = { "View Profile", "Match History", "Friends List", "Back" };
     int optionCount = 4;
-    
     Texture backgroundTexture;
     Sprite background;
     if (backgroundTexture.loadFromFile("assets/images/background.jpg"))
         background.setTexture(backgroundTexture);
-    
     Texture logoTexture;
     Sprite logo;
     if (logoTexture.loadFromFile("assets/images/logo.png")) {
@@ -1387,17 +1324,14 @@ void showProfileMenu(RenderWindow* window, int playerID, const string& username)
         logo.setPosition(30, 30);
         logo.setScale(350.0f / logo.getLocalBounds().width, 80.0f / logo.getLocalBounds().height);
     }
-    
     while (window->isOpen()) {
         equippedTheme = g_inventoryMgr->getEquippedTheme(playerID);
         themeColor = equippedTheme ? equippedTheme->primaryColor : Color::Blue;
         themeSecondary = equippedTheme ? equippedTheme->secondaryColor : Color::Cyan;
-        
         Event event;
         while (window->pollEvent(event)) {
             if (event.type == Event::Closed)
                 window->close();
-            
             if (event.type == Event::KeyReleased) {
                 if (event.key.code == Keyboard::Escape)
                     return;
@@ -1407,7 +1341,6 @@ void showProfileMenu(RenderWindow* window, int playerID, const string& username)
                     moveDown(selected, optionCount);
                 else if (event.key.code == Keyboard::Return) {
                     if (selected == 0) {
-                        // View Profile
                         PlayerProfile profile(playerID, username); // Reload profile to get latest data
                         bool viewing = true;
                         while (viewing && window->isOpen()) {
@@ -1418,19 +1351,15 @@ void showProfileMenu(RenderWindow* window, int playerID, const string& username)
                                 if (viewEvent.type == Event::KeyReleased && viewEvent.key.code == Keyboard::Escape)
                                     viewing = false;
                             }
-                            
                             if (!viewing) break; // Exit before rendering
-                            
                             window->clear(themeColor);
                             drawCommonUI(window, background, logo);
                             profile.displayProfile(window, font);
                             window->display();
                         }
-                        // Clear any remaining events
                         Event clearEvent;
                         while (window->pollEvent(clearEvent)) { }
                     } else if (selected == 1) {
-                        // Match History
                         PlayerProfile profile(playerID, username); // Reload profile to get latest data
                         bool viewing = true;
                         while (viewing && window->isOpen()) {
@@ -1441,19 +1370,15 @@ void showProfileMenu(RenderWindow* window, int playerID, const string& username)
                                 if (viewEvent.type == Event::KeyReleased && viewEvent.key.code == Keyboard::Escape)
                                     viewing = false;
                             }
-                            
                             if (!viewing) break; // Exit before rendering
-                            
                             window->clear(themeColor);
                             drawCommonUI(window, background, logo);
                             profile.displayMatchHistory(window, font);
                             window->display();
                         }
-                        // Clear any remaining events
                         Event clearEvent;
                         while (window->pollEvent(clearEvent)) { }
                     } else if (selected == 2) {
-                        // Friends List
                         PlayerProfile profile(playerID, username); // Reload profile to get latest data
                         bool viewing = true;
                         while (viewing && window->isOpen()) {
@@ -1464,59 +1389,44 @@ void showProfileMenu(RenderWindow* window, int playerID, const string& username)
                                 if (viewEvent.type == Event::KeyReleased && viewEvent.key.code == Keyboard::Escape)
                                     viewing = false;
                             }
-                            
                             if (!viewing) break; // Exit before rendering
-                            
                             window->clear(themeColor);
                             drawCommonUI(window, background, logo);
                             profile.displayFriendsList(window, font);
                             window->display();
                         }
-                        // Clear any remaining events
                         Event clearEvent;
                         while (window->pollEvent(clearEvent)) { }
                     } else if (selected == 3) {
-                        // Back
                         return;
                     }
                 }
             }
         }
-        
-        // Reload profile to get latest data for stats summary
         PlayerProfile profile(playerID, username);
-        
         window->clear(themeColor);
         drawCommonUI(window, background, logo);
-        
         Text title("PLAYER PROFILE MENU", font, 30);
         title.setFillColor(themeSecondary);
         title.setPosition(150, 130);
         window->draw(title);
-        
         Text playerName(username, font, 24);
         playerName.setFillColor(Color::Yellow);
         playerName.setPosition(250, 170);
         window->draw(playerName);
-        
         RectangleShape selector(Vector2f(250, 28));
         selector.setFillColor(Color(128, 128, 128, 150));
         selector.setPosition(180, 210 + selected * 35);
         window->draw(selector);
-        
         for (int i = 0; i < optionCount; i++) {
             Text optionText(options[i], font, 20);
             optionText.setPosition(185, 210 + i * 35);
-            
             if (i == selected)
                 optionText.setFillColor(themeSecondary);
             else
                 optionText.setFillColor(Color(200, 200, 200));
-            
             window->draw(optionText);
         }
-        
-        // Display profile stats summary
         Text statsText("", font, 16);
         statsText.setPosition(150, 360);
         statsText.setFillColor(Color(220, 220, 220));
@@ -1526,7 +1436,6 @@ void showProfileMenu(RenderWindow* window, int playerID, const string& username)
         stats += "Friends: " + to_string(profile.getFriendCount());
         statsText.setString(stats);
         window->draw(statsText);
-        
         window->display();
     }
 }

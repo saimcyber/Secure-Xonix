@@ -141,13 +141,13 @@ bool FriendSystem::acceptFriendRequest(int playerID, int fromPlayerID) {
             FriendRequest* friend1 = new FriendRequest(
                 fromPlayerID, players[fromIndex].username, playerID, players[playerIndex].username
             );
-            friend1->status = ACCEPTED;
+            friend1->status = REQUEST_ACCEPTED;
             friend1->next = players[playerIndex].friendsHead;
             players[playerIndex].friendsHead = friend1;
             FriendRequest* friend2 = new FriendRequest(
                 playerID, players[playerIndex].username, fromPlayerID, players[fromIndex].username
             );
-            friend2->status = ACCEPTED;
+            friend2->status = REQUEST_ACCEPTED;
             friend2->next = players[fromIndex].friendsHead;
             players[fromIndex].friendsHead = friend2;
             delete current;
@@ -344,7 +344,7 @@ void FriendSystem::loadFriendData() {
             getline(file, toName);
             if (file.fail()) break;
             FriendRequest* newFriend = new FriendRequest(fromID, fromName, toID, toName);
-            newFriend->status = ACCEPTED;
+            newFriend->status = REQUEST_ACCEPTED;
             newFriend->next = players[playerIdx].friendsHead;
             players[playerIdx].friendsHead = newFriend;
         }
@@ -361,7 +361,7 @@ void FriendSystem::loadFriendData() {
             getline(file, toName);
             if (file.fail()) break;
             FriendRequest* newRequest = new FriendRequest(fromID, fromName, toID, toName);
-            newRequest->status = PENDING;
+            newRequest->status = REQUEST_PENDING;
             newRequest->next = players[playerIdx].pendingHead;
             players[playerIdx].pendingHead = newRequest;
         }

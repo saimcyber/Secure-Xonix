@@ -17,10 +17,21 @@ class SaveGame;
 const int M = 25;
 const int N = 40;
 
-// Global variable definitions (static to avoid multiple definition errors)
-static int g_currentPlayerID = -1;
-static string g_currentUsername = "";
-static FriendSystem* g_friendSystem = nullptr;
-static InventoryManager* g_inventoryMgr = nullptr;
-static SaveGame* g_saveGame = nullptr;
-static int difficulty = 1;
+// Globals namespace with getter/setter functions
+namespace Globals {
+    // Getter and setter functions
+    int& getCurrentPlayerID();
+    string& getCurrentUsername();
+    FriendSystem*& getFriendSystem();
+    InventoryManager*& getInventoryManager();
+    SaveGame*& getSaveGame();
+    int& getDifficulty();
+}
+
+// Convenience macros for backward compatibility (optional)
+#define g_currentPlayerID Globals::getCurrentPlayerID()
+#define g_currentUsername Globals::getCurrentUsername()
+#define g_friendSystem Globals::getFriendSystem()
+#define g_inventoryMgr Globals::getInventoryManager()
+#define g_saveGame Globals::getSaveGame()
+#define difficulty Globals::getDifficulty()

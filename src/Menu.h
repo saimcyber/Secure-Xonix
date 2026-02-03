@@ -36,4 +36,5 @@ void moveDown(int& menuSelected, int Max_menu);
 bool loadMenuSound();
 void startBackgroundMusic();
 void stopBackgroundMusic();
+void cleanupAudio();
 void drawCommonUI(sf::RenderWindow* window, sf::Sprite& background, sf::Sprite& logo);
