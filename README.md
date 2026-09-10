@@ -102,7 +102,53 @@ These are implemented manually to demonstrate **algorithmic control, memory hand
 - C++ Compiler (G++ / MinGW / MSVC)
 - SFML 2.5+
 
-### Clone Repository
+### Clone
 
 ```bash
 git clone https://github.com/saimcyber/Secure-Xonix.git
+cd Secure-Xonix
+```
+
+### Build with CMake
+
+```bash
+cmake -S . -B build
+cmake --build build
+./build/xonix          # build/xonix.exe on Windows
+```
+
+### Build without CMake (Windows + MinGW)
+
+```bat
+buildandrun.bat
+```
+
+Edit `SFML_DIR` in `buildandrun.bat` (or `SFML_DIR` in `CMakeLists.txt`) if your
+SFML install is not at `C:\SFML`. Assets and the required SFML DLLs are copied
+next to the executable automatically.
+
+## Project Structure
+
+```text
+src/
+  main.cpp            game loop, grid, flood-fill territory capture
+  Menu.cpp            menus and navigation
+  Authentication.cpp  login / registration
+  Profile.cpp         player profile, XP, unlocks
+  Inventory.cpp       AVL tree — theme inventory
+  FriendSystem.cpp    hash table — friends and lookup
+  MinHeap.cpp         min-heap — Top-10 leaderboard
+  PriorityQueue.cpp / GameRoomQueue.cpp   matchmaking queue
+  SaveGame.cpp        file serialization of game state
+assets/               fonts, images, audio, screenshots
+CMakeLists.txt        CMake build
+buildandrun.bat       direct g++ build for Windows
+```
+
+## Authors
+
+Muhammad Amish and Saim Zaib — a Data Structures course project.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
